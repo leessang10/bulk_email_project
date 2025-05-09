@@ -1,22 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bulk Email Project (Frontend)
 
-## Getting Started
+이 프로젝트는 대량 이메일 마케팅 시스템의 프론트엔드(Next.js 기반)입니다.
 
-First, run the development server:
+## 주요 기능
+
+- 이메일 그룹 관리 (tb_email_address_group)
+- 이메일 주소록 관리 (tb_email_address)
+- 그룹별 상세/주소록 목록 Drawer
+- 검색, 다중 선택, 일괄 삭제 등
+
+## 테이블 컬럼 구조
+
+### 📁 tb_email_address_group (이메일 그룹)
+
+| 컬럼명          | 설명            |
+| --------------- | --------------- |
+| id              | PK              |
+| name            | 그룹명          |
+| region          | 지역            |
+| status          | 상태            |
+| address_count   | 주소 수         |
+| created_at      | 생성일          |
+| updated_at      | 수정일          |
+| mail_merge_data | 머지 확장데이터 |
+
+### 👤 tb_email_address (주소록)
+
+| 컬럼명           | 설명            |
+| ---------------- | --------------- |
+| id               | PK              |
+| address_type     | 타입            |
+| email            | 이메일          |
+| name             | 이름            |
+| is_subscribed    | 구독여부        |
+| memo             | 메모            |
+| created_at       | 생성일          |
+| updated_at       | 수정일          |
+| address_group_id | 그룹ID(FK)      |
+| mail_merge_data  | 머지 확장데이터 |
+
+## 개발/실행
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- http://localhost:3000 접속
+- 주요 페이지: `src/app/emailGroups/page.tsx`
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
