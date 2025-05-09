@@ -2,6 +2,7 @@ import { Layout, Menu } from 'antd';
 import { MailOutlined, TeamOutlined, AppstoreOutlined, SendOutlined, StopOutlined, BarChartOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { theme } from '@/styles/theme';
 
 const { Sider, Content } = Layout;
 
@@ -73,7 +74,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           }))}
         />
       </Sider>
-      <Content style={{ margin: '24px 16px', padding: 24, background: '#fff', minHeight: 280 }}>{children}</Content>
+      <Content
+        style={{
+          margin: '24px 16px',
+          padding: 24,
+          background: theme.token.colorBgBase,
+          minHeight: 280,
+        }}
+      >
+        {children}
+      </Content>
     </Layout>
   );
 }

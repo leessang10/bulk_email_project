@@ -2,6 +2,7 @@ import { Card, Row, Col, Statistic, Table } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import AdminLayout from '@/shared/components/layouts/AdminLayout';
 import type { ColumnsType } from 'antd/es/table';
+import { theme } from '@/styles/theme';
 
 interface TopTemplate {
   id: number;
@@ -59,22 +60,22 @@ export default function StatisticsPage() {
       <Row gutter={[16, 16]}>
         <Col span={6}>
           <Card>
-            <Statistic title="총 구독자" value={5000} valueStyle={{ color: '#3f8600' }} prefix={<ArrowUpOutlined />} suffix="명" />
+            <Statistic title="총 구독자" value={5000} valueStyle={{ color: theme.token.colorSuccess }} prefix={<ArrowUpOutlined />} suffix="명" />
           </Card>
         </Col>
         <Col span={6}>
           <Card>
-            <Statistic title="이번 달 발송" value={2500} valueStyle={{ color: '#3f8600' }} prefix={<ArrowUpOutlined />} suffix="건" />
+            <Statistic title="이번 달 발송" value={2500} valueStyle={{ color: theme.token.colorSuccess }} prefix={<ArrowUpOutlined />} suffix="건" />
           </Card>
         </Col>
         <Col span={6}>
           <Card>
-            <Statistic title="평균 오픈율" value={65} valueStyle={{ color: '#3f8600' }} prefix={<ArrowUpOutlined />} suffix="%" />
+            <Statistic title="평균 오픈율" value={65} valueStyle={{ color: theme.token.colorSuccess }} prefix={<ArrowUpOutlined />} suffix="%" />
           </Card>
         </Col>
         <Col span={6}>
           <Card>
-            <Statistic title="평균 클릭율" value={35} valueStyle={{ color: '#cf1322' }} prefix={<ArrowDownOutlined />} suffix="%" />
+            <Statistic title="평균 클릭율" value={35} valueStyle={{ color: theme.token.colorError }} prefix={<ArrowDownOutlined />} suffix="%" />
           </Card>
         </Col>
       </Row>

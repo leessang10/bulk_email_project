@@ -2,6 +2,7 @@ import { Table, Button, Space, Card, Input, Select } from 'antd';
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import AdminLayout from '@/shared/components/layouts/AdminLayout';
 import type { ColumnsType } from 'antd/es/table';
+import { theme } from '@/styles/theme';
 
 interface EmailAddress {
   id: number;
@@ -32,7 +33,7 @@ const columns: ColumnsType<EmailAddress> = [
     title: '구독 상태',
     dataIndex: 'isSubscribed',
     key: 'isSubscribed',
-    render: (isSubscribed: boolean) => <span style={{ color: isSubscribed ? '#52c41a' : '#ff4d4f' }}>{isSubscribed ? '구독중' : '구독취소'}</span>,
+    render: (isSubscribed: boolean) => <span style={{ color: isSubscribed ? theme.token.colorSuccess : theme.token.colorError }}>{isSubscribed ? '구독중' : '구독취소'}</span>,
   },
   {
     title: '등록일',
