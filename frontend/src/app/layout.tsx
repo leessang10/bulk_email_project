@@ -1,7 +1,12 @@
+import { Layout } from "antd";
 import "antd/dist/reset.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import ClientProviders from "./ClientProviders";
+import ContentWrapper from "./ContentWrapper";
+import Sidebar from "./Sidebar";
 import "./globals.css";
+
+const { Content } = Layout;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,10 +18,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const theme = {
-  colorPrimary: "#1677ff",
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,7 +26,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <ClientProviders>{children}</ClientProviders>
+        <ClientProviders>
+          <Layout style={{ minHeight: "100vh" }}>
+            <Sidebar />
+            <Layout>
+              <ContentWrapper>{children}</ContentWrapper>
+            </Layout>
+          </Layout>
+        </ClientProviders>
       </body>
     </html>
   );
