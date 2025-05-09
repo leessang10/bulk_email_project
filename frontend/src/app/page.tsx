@@ -1,95 +1,69 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+import styled from "@emotion/styled";
+import { Button, Layout, Space, Typography } from "antd";
+
+const { Title, Paragraph } = Typography;
+const { Header, Content, Footer } = Layout;
+
+const MainWrapper = styled.div`
+  min-height: 100vh;
+  background: #f7f9fb;
+`;
+
+const CenterBox = styled.div`
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 64px 24px 32px 24px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  text-align: center;
+`;
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <MainWrapper>
+      <Header style={{ background: "#1677ff", padding: 0 }}>
+        <Title
+          level={2}
+          style={{ color: "#fff", margin: 0, padding: "16px 0" }}
+        >
+          Bulk Email Service
+        </Title>
+      </Header>
+      <Content style={{ minHeight: "calc(100vh - 120px)" }}>
+        <CenterBox>
+          <img
+            src="/next.svg"
+            alt="로고"
+            width={120}
+            style={{ marginBottom: 24 }}
+          />
+          <Title level={3}>마케팅 대량 메일 발송 시스템</Title>
+          <Paragraph type="secondary">
+            쉽고 빠르게 대량 이메일을 발송하고,
+            <br />
+            템플릿, 예약, 통계, 수신거부까지 한 번에 관리하세요.
+          </Paragraph>
+          <Space
+            direction="vertical"
+            size="large"
+            style={{ width: "100%", marginTop: 32 }}
           >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+            <Button type="primary" size="large" block>
+              시작하기
+            </Button>
+            <Button size="large" block href="#features">
+              주요 기능 보기
+            </Button>
+          </Space>
+        </CenterBox>
+      </Content>
+      <Footer style={{ textAlign: "center", background: "#f7f9fb" }}>
+        <Paragraph type="secondary">
+          © {new Date().getFullYear()} Bulk Email Service
+        </Paragraph>
+      </Footer>
+    </MainWrapper>
   );
 }
