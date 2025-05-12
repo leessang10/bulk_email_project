@@ -1,54 +1,92 @@
-# React + TypeScript + Vite
+대량 메일 발송 관리자단
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+사이드바 메뉴는 다음과 같음:
 
-Currently, two official plugins are available:
+- 이메일 발송 통계
+- 이메일 그룹 관리 (email-groups)
+- 이메일 템플릿 관리
+- 이메일 발송 작업 관리 (send-task)
+- 수신거부 이메일 관리 (unsubscribes)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 폴더 구조 예시
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```
+frontend/src/
+├── common/
+│   ├── components/
+│   ├── hooks/
+│   ├── services/
+│   ├── store/
+│   ├── types/
+│   ├── utils/
+│   └── assets/
+├── pages/
+│   ├── statistics/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── api/
+│   │   └── types/
+│   ├── email-groups/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── api/
+│   │   └── types/
+│   ├── templates/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── api/
+│   │   └── types/
+│   ├── send-task/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── api/
+│   │   └── types/
+│   └── unsubscribes/
+│       ├── components/
+│       ├── hooks/
+│       ├── api/
+│       └── types/
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### 이메일 발송 통계
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+- 일간, 주간, 월간, 년간 메일 발송량/발송성공/발송실패 통계치 및 그래프 제공
+
+### 이메일 그룹 관리 (email-groups)
+
+1. 이메일 그룹 목록 + 검색 필터
+2. 이메일 그룹 상세 (이메일 그룹에 속한 이메일 목록)
+3. 이메일 그룹 엑셀파일로 일괄 등록 버튼
+4. 이메일 그룹 수정
+5. 이메일 그룹 삭제
+
+### 이메일 템플릿 관리
+
+1. 사이드바를 나타내지 않음
+2. MJML 에디터 직접 구현
+3. 좌측 패널, 중앙 패널, 우측 패널로 구성된 에디터
+4. 좌측: 이메일에 넣을 컴포넌트/레이아웃 그리드 목록
+5. 중앙: 메일 내용 편집 패널 (에디터/미리보기/코드보기, 데스크톱/모바일 보기, 드래그앤드랍)
+6. 우측: 삽입한 컴포넌트의 상세 설정 (프로퍼티 조정)
+7. 좌측에서 드래그하여 중앙에 놓으면 해당 위치에 요소 배치
+8. 레이아웃이 컴포넌트보다 상위, 레이아웃은 세로로만 나열
+9. 레이아웃: 1~4열, 푸터(수신거부 버튼 기본)
+10. 컴포넌트: 텍스트, 이미지, 버튼, 링크
+
+### 이메일 발송 작업 관리 (send-task)
+
+- 메일 발송 작업 목록 조회/등록
+- 발송 대상 종류 선택 (이메일 그룹/활성 회원)
+- 발송 대상 이메일 그룹 지정
+- 메일 템플릿 지정 (미리보기 제공)
+- (선택) 예약 발송 일시 지정 (미지정 시 즉시 발송)
+- 발송 작업 일시중지/재개 가능
+
+### 수신거부 이메일 관리 (unsubscribes)
+
+- 사용자가 수신거부 했거나, 메일이 자동 바운스됐을 때 DB에 추가된 수신거부 이메일 목록 조회/검색
+- 단순 나열 및 검색 기능 제공
