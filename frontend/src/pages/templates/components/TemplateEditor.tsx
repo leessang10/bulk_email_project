@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useDrop } from "react-dnd";
 import styled from "styled-components";
-import type { LayoutItem, LayoutType } from "../types/editor";
+import type { ComponentType, LayoutItem, LayoutType } from "../types/editor";
+import ComponentPanel from "./ComponentPanel";
 import DraggableLayoutBox from "./DraggableLayoutBox";
 import LayoutPanel from "./LayoutPanel";
 
@@ -34,6 +35,31 @@ const TemplateEditor = () => {
     });
   };
 
+  const handleAddComponent = (
+    layoutId: string,
+    componentType: ComponentType
+  ) => {
+    setLayouts((prev) =>
+      prev.map((layout) => {
+        if (layout.id === layoutId) {
+          return {
+            ...layout,
+            children: [
+              ...layout.children,
+              {
+                id: `component-${Date.now()}`,
+                type: componentType,
+                content: getDefaultContent(componentType),
+                properties: getDefaultProperties(componentType),
+              },
+            ],
+          };
+        }
+        return layout;
+      })
+    );
+  };
+
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ["layout", "layoutBox"],
     drop: (item: { type: string; layoutType?: LayoutType }, monitor) => {
@@ -52,7 +78,10 @@ const TemplateEditor = () => {
     <Container>
       <LeftPanel>
         <PanelTitle>레이아웃 / 컴포넌트</PanelTitle>
-        <LayoutPanel />
+        <TabContainer>
+          <LayoutPanel />
+          <ComponentPanel />
+        </TabContainer>
       </LeftPanel>
 
       <CenterPanel>
@@ -103,6 +132,7 @@ const TemplateEditor = () => {
                 isSelected={selectedItemId === layout.id}
                 onClick={() => setSelectedItemId(layout.id)}
                 onReorder={handleLayoutsReorder}
+                onAddComponent={handleAddComponent}
               />
             ))}
             {layouts.length === 0 && (
@@ -120,6 +150,49 @@ const TemplateEditor = () => {
       </RightPanel>
     </Container>
   );
+};
+
+const getDefaultContent = (type: ComponentType): string => {
+  switch (type) {
+    case "text":
+      return "텍스트를 입력하세요";
+    case "button":
+      return "버튼";
+    case "link":
+      return "링크";
+    default:
+      return "";
+  }
+};
+
+const getDefaultProperties = (type: ComponentType) => {
+  switch (type) {
+    case "text":
+      return {
+        color: "#333333",
+        fontSize: "16px",
+        textAlign: "left" as const,
+      };
+    case "image":
+      return {
+        width: "100%",
+        height: "auto",
+        src: "https://via.placeholder.com/300x200",
+        alt: "이미지 설명",
+      };
+    case "button":
+      return {
+        backgroundColor: "#1a73e8",
+        color: "#ffffff",
+        padding: "8px 16px",
+        borderRadius: "4px",
+      };
+    case "link":
+      return {
+        color: "#1a73e8",
+        href: "#",
+      };
+  }
 };
 
 const Container = styled.div`
@@ -205,6 +278,11 @@ const EmptyMessage = styled.div`
   padding: 40px;
   color: #666;
   font-size: 16px;
+`;
+
+const TabContainer = styled.div`
+  flex: 1;
+  overflow-y: auto;
 `;
 
 export default TemplateEditor;

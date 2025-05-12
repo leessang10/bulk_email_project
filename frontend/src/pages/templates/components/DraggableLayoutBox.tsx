@@ -1,7 +1,8 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import styled from "styled-components";
-import type { LayoutItem } from "../types/editor";
+import type { ComponentType, LayoutItem } from "../types/editor";
+import { LAYOUT_STYLES } from "../types/editor";
 
 interface DraggableLayoutBoxProps {
   layout: LayoutItem;
@@ -9,13 +10,15 @@ interface DraggableLayoutBoxProps {
   isSelected: boolean;
   onClick: () => void;
   onReorder: (dragIndex: number, hoverIndex: number) => void;
+  onAddComponent: (layoutId: string, componentType: ComponentType) => void;
 }
 
 interface DragItem {
-  type: "layoutBox";
-  id: string;
-  originalIndex: number;
-  currentIndex: number;
+  type: "layoutBox" | "component";
+  id?: string;
+  originalIndex?: number;
+  currentIndex?: number;
+  componentType?: ComponentType;
 }
 
 const DraggableLayoutBox = ({
@@ -24,8 +27,21 @@ const DraggableLayoutBox = ({
   isSelected,
   onClick,
   onReorder,
+  onAddComponent,
 }: DraggableLayoutBoxProps) => {
   const ref = useRef<HTMLDivElement>(null);
+  const layoutStyle = LAYOUT_STYLES[layout.type];
+
+  // 푸터 레이아웃인 경우 수신거부 버튼 자동 추가 (이미 버튼이 있는 경우 제외)
+  useEffect(() => {
+    if (
+      layoutStyle.isFooter &&
+      layout.children.length === 0 &&
+      !layout.children.some((child) => child.type === "button")
+    ) {
+      onAddComponent(layout.id, "button");
+    }
+  }, [layout.id, layoutStyle.isFooter, layout.children, onAddComponent]);
 
   const [{ isDragging }, drag] = useDrag<
     DragItem,
@@ -47,41 +63,59 @@ const DraggableLayoutBox = ({
     [layout.id, index]
   );
 
-  const [, drop] = useDrop<DragItem>(
+  const [{ isOver }, drop] = useDrop<DragItem, void, { isOver: boolean }>(
     () => ({
-      accept: "layoutBox",
+      accept: ["layoutBox", "component"],
       hover: (item, monitor) => {
-        if (!ref.current) return;
+        if (item.type === "layoutBox") {
+          if (!ref.current) return;
 
-        const dragIndex = item.currentIndex;
-        const hoverIndex = index;
+          const dragIndex = item.currentIndex!;
+          const hoverIndex = index;
 
-        // 자기 자신 위에 드래그하는 경우 무시
-        if (dragIndex === hoverIndex) return;
+          if (dragIndex === hoverIndex) return;
 
-        // 드래그 중인 아이템의 사각형 영역 가져오기
-        const hoverBoundingRect = ref.current.getBoundingClientRect();
+          const hoverBoundingRect = ref.current.getBoundingClientRect();
+          const hoverMiddleY =
+            (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+          const clientOffset = monitor.getClientOffset();
+          if (!clientOffset) return;
 
-        // 드래그 중인 아이템의 수직 중앙점 계산
-        const hoverMiddleY =
-          (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
 
-        // 마우스 포인터의 위치 가져오기
-        const clientOffset = monitor.getClientOffset();
-        if (!clientOffset) return;
+          if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
+          if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
 
-        // 드래그 중인 아이템과 호버 중인 아이템의 거리 계산
-        const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-
-        // 드래그 방향에 따라 순서 변경 여부 결정
-        if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
-        if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
-
-        onReorder(dragIndex, hoverIndex);
-        item.currentIndex = hoverIndex;
+          onReorder(dragIndex, hoverIndex);
+          item.currentIndex = hoverIndex;
+        }
       },
+      drop: (item, monitor) => {
+        if (item.type === "component" && !monitor.didDrop()) {
+          // 컴포넌트 개수 제한 확인
+          if (layout.children.length >= layoutStyle.maxComponents) {
+            return;
+          }
+          // 푸터에 이미 버튼이 있는 경우 추가 방지
+          if (layoutStyle.isFooter && item.componentType === "button") {
+            return;
+          }
+          onAddComponent(layout.id, item.componentType!);
+        }
+      },
+      collect: (monitor) => ({
+        isOver: monitor.isOver({ shallow: true }),
+      }),
     }),
-    [index, onReorder]
+    [
+      index,
+      onReorder,
+      layout.id,
+      onAddComponent,
+      layout.children.length,
+      layoutStyle.maxComponents,
+      layoutStyle.isFooter,
+    ]
   );
 
   drag(drop(ref));
@@ -95,18 +129,65 @@ const DraggableLayoutBox = ({
       }}
       $isSelected={isSelected}
       $isDragging={isDragging}
+      $isOver={isOver && layout.children.length < layoutStyle.maxComponents}
     >
-      <DragHandle>⋮⋮</DragHandle>
-      <div>
-        {layout.type} 레이아웃
-        <LayoutId>({layout.id})</LayoutId>
-      </div>
+      <Content $columns={layoutStyle.template}>
+        {layout.children.map((component) => (
+          <ComponentBox key={component.id}>
+            {component.type === "text" && <div>{component.content}</div>}
+            {component.type === "image" && (
+              <img
+                src={component.properties.src}
+                alt={component.properties.alt}
+                style={{
+                  width: component.properties.width || "100%",
+                  height: component.properties.height || "auto",
+                }}
+              />
+            )}
+            {component.type === "button" && (
+              <button
+                style={{
+                  backgroundColor: component.properties.backgroundColor,
+                  color: component.properties.color,
+                  padding: component.properties.padding,
+                  borderRadius: component.properties.borderRadius,
+                  width: "100%",
+                }}
+              >
+                {layoutStyle.isFooter ? "수신거부" : component.content}
+              </button>
+            )}
+            {component.type === "link" && (
+              <a
+                href={component.properties.href}
+                style={{
+                  color: component.properties.color,
+                  textDecoration: "none",
+                }}
+              >
+                {component.content}
+              </a>
+            )}
+          </ComponentBox>
+        ))}
+        {layout.children.length < layoutStyle.maxComponents &&
+          Array.from({
+            length: layoutStyle.maxComponents - layout.children.length,
+          }).map((_, index) => (
+            <EmptyContent key={`empty-${index}`}>+</EmptyContent>
+          ))}
+      </Content>
     </LayoutBox>
   );
 };
 
-const LayoutBox = styled.div<{ $isSelected: boolean; $isDragging: boolean }>`
-  padding: 20px;
+const LayoutBox = styled.div<{
+  $isSelected: boolean;
+  $isDragging: boolean;
+  $isOver: boolean;
+}>`
+  padding: 10px;
   background: white;
   border: 2px solid
     ${({ $isSelected }) => ($isSelected ? "#1a73e8" : "#e0e0e0")};
@@ -115,26 +196,55 @@ const LayoutBox = styled.div<{ $isSelected: boolean; $isDragging: boolean }>`
   opacity: ${({ $isDragging }) => ($isDragging ? 0.5 : 1)};
   transition: all 0.2s;
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+
+  ${({ $isOver }) =>
+    $isOver &&
+    `
+    background: #f0f7ff;
+  `}
 
   &:hover {
     border-color: #1a73e8;
   }
 `;
 
-const DragHandle = styled.div`
-  cursor: move;
-  color: #999;
-  font-size: 16px;
-  user-select: none;
+const Content = styled.div<{ $columns: string }>`
+  display: grid;
+  grid-template-columns: ${({ $columns }) => $columns};
+  gap: 16px;
+  padding: 0px;
+  background: #f8f8f8;
+  border-radius: 4px;
+  min-height: 100px;
 `;
 
-const LayoutId = styled.span`
+const ComponentBox = styled.div`
+  background: white;
+  padding: 16px;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+`;
+
+const EmptyContent = styled.div`
+  text-align: center;
   color: #999;
-  font-size: 12px;
-  margin-left: 8px;
+  padding: 20px;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  border: 2px dashed #ccc;
+  border-radius: 4px;
+  min-height: 120px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #e8e8e8;
+    border-color: #999;
+    color: #666;
+  }
 `;
 
 export default DraggableLayoutBox;
