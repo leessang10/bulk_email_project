@@ -7,7 +7,6 @@ import type {
   LayoutItem,
 } from "../../types/editor";
 import RangeInput from "./RangeInput";
-import TextStyleControls from "./TextStyleControls";
 
 interface PropertyPanelProps {
   selectedItem: ComponentItem | LayoutItem | null;
@@ -57,44 +56,166 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
   const defaultProps =
     DEFAULT_COMPONENT_PROPERTIES[componentItem.type].properties;
 
-  const handlePaddingChange = (value: number) => {
+  const handlePaddingXChange = (value: number) => {
     onUpdateProperties({
       ...componentItem.properties,
-      padding: `${value}px`,
+      paddingX: `${value}px`,
     });
   };
 
-  const handleHeightChange = (value: number) => {
+  const handlePaddingYChange = (value: number) => {
     onUpdateProperties({
       ...componentItem.properties,
-      height: `${value}px`,
+      paddingY: `${value}px`,
     });
   };
+
+  const handleBorderRadiusChange = (value: number) => {
+    onUpdateProperties({
+      ...componentItem.properties,
+      borderRadius: `${value}px`,
+    });
+  };
+
+  const commonControls = (
+    <>
+      <RangeInput
+        label="좌우 패딩"
+        value={parseInt(
+          (
+            componentItem.properties.paddingX ||
+            defaultProps.paddingX ||
+            "10px"
+          ).replace("px", "")
+        )}
+        min={0}
+        max={50}
+        unit="px"
+        onChange={handlePaddingXChange}
+      />
+      <RangeInput
+        label="상하 패딩"
+        value={parseInt(
+          (
+            componentItem.properties.paddingY ||
+            defaultProps.paddingY ||
+            "5px"
+          ).replace("px", "")
+        )}
+        min={0}
+        max={50}
+        unit="px"
+        onChange={handlePaddingYChange}
+      />
+      <RangeInput
+        label="테두리 반경"
+        value={parseInt(
+          (
+            componentItem.properties.borderRadius ||
+            defaultProps.borderRadius ||
+            "0px"
+          ).replace("px", "")
+        )}
+        min={0}
+        max={20}
+        unit="px"
+        onChange={handleBorderRadiusChange}
+      />
+    </>
+  );
+
+  const textStyleControls = (
+    <>
+      <PropertyGroup>
+        <Label>글꼴</Label>
+        <Select
+          value={
+            componentItem.properties.fontFamily ||
+            defaultProps.fontFamily ||
+            "Arial, sans-serif"
+          }
+          onChange={(e) =>
+            onUpdateProperties({
+              ...componentItem.properties,
+              fontFamily: e.target.value,
+            })
+          }
+        >
+          <option value="Arial, sans-serif">Arial</option>
+          <option value="'Noto Sans KR', sans-serif">Noto Sans KR</option>
+          <option value="'Malgun Gothic', sans-serif">맑은 고딕</option>
+          <option value="'Roboto', sans-serif">Roboto</option>
+        </Select>
+      </PropertyGroup>
+      <PropertyGroup>
+        <Label>스타일</Label>
+        <StyleButtonGroup>
+          <StyleButton
+            $active={componentItem.properties.fontWeight === "bold"}
+            onClick={() =>
+              onUpdateProperties({
+                ...componentItem.properties,
+                fontWeight:
+                  componentItem.properties.fontWeight === "bold"
+                    ? "normal"
+                    : "bold",
+              })
+            }
+            title="굵게"
+          >
+            B
+          </StyleButton>
+          <StyleButton
+            $active={componentItem.properties.fontStyle === "italic"}
+            onClick={() =>
+              onUpdateProperties({
+                ...componentItem.properties,
+                fontStyle:
+                  componentItem.properties.fontStyle === "italic"
+                    ? "normal"
+                    : "italic",
+              })
+            }
+            title="기울임"
+          >
+            I
+          </StyleButton>
+          <StyleButton
+            $active={componentItem.properties.textDecoration === "underline"}
+            onClick={() =>
+              onUpdateProperties({
+                ...componentItem.properties,
+                textDecoration:
+                  componentItem.properties.textDecoration === "underline"
+                    ? "none"
+                    : "underline",
+              })
+            }
+            title="밑줄"
+          >
+            U
+          </StyleButton>
+          <StyleButton
+            $active={componentItem.properties.textDecoration === "line-through"}
+            onClick={() =>
+              onUpdateProperties({
+                ...componentItem.properties,
+                textDecoration:
+                  componentItem.properties.textDecoration === "line-through"
+                    ? "none"
+                    : "line-through",
+              })
+            }
+            title="취소선"
+          >
+            S
+          </StyleButton>
+        </StyleButtonGroup>
+      </PropertyGroup>
+    </>
+  );
 
   const renderComponentProperties = (type: ComponentType) => {
-    const commonControls = (
-      <>
-        <RangeInput
-          label="패딩"
-          value={parseInt(
-            componentItem.properties.padding || defaultProps.padding
-          )}
-          min={0}
-          max={100}
-          onChange={handlePaddingChange}
-        />
-        <RangeInput
-          label="높이"
-          value={parseInt(
-            componentItem.properties.height || defaultProps.height
-          )}
-          min={0}
-          max={500}
-          onChange={handleHeightChange}
-        />
-      </>
-    );
-
     switch (type) {
       case "text":
         return (
@@ -106,54 +227,16 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 onChange={(e) => onUpdateContent?.(e.target.value)}
               />
             </PropertyGroup>
-            <TextStyleControls
-              fontFamily={
-                componentItem.properties.fontFamily || defaultProps.fontFamily
-              }
-              isBold={componentItem.properties.fontWeight === "bold"}
-              isItalic={componentItem.properties.fontStyle === "italic"}
-              isUnderline={
-                componentItem.properties.textDecoration === "underline"
-              }
-              isStrikethrough={
-                componentItem.properties.textDecoration === "line-through"
-              }
-              onFontFamilyChange={(value) =>
-                onUpdateProperties({
-                  ...componentItem.properties,
-                  fontFamily: value,
-                })
-              }
-              onBoldChange={(value) =>
-                onUpdateProperties({
-                  ...componentItem.properties,
-                  fontWeight: value ? "bold" : "normal",
-                })
-              }
-              onItalicChange={(value) =>
-                onUpdateProperties({
-                  ...componentItem.properties,
-                  fontStyle: value ? "italic" : "normal",
-                })
-              }
-              onUnderlineChange={(value) =>
-                onUpdateProperties({
-                  ...componentItem.properties,
-                  textDecoration: value ? "underline" : "none",
-                })
-              }
-              onStrikethroughChange={(value) =>
-                onUpdateProperties({
-                  ...componentItem.properties,
-                  textDecoration: value ? "line-through" : "none",
-                })
-              }
-            />
+            {textStyleControls}
             <PropertyGroup>
               <Label>색상</Label>
               <Input
                 type="color"
-                value={componentItem.properties.color || defaultProps.color}
+                value={
+                  componentItem.properties.color ||
+                  defaultProps.color ||
+                  "#333333"
+                }
                 onChange={(e) =>
                   onUpdateProperties({
                     ...componentItem.properties,
@@ -166,12 +249,14 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
               <Label>정렬</Label>
               <Select
                 value={
-                  componentItem.properties.textAlign || defaultProps.textAlign
+                  componentItem.properties.textAlign ||
+                  defaultProps.textAlign ||
+                  "center"
                 }
                 onChange={(e) =>
                   onUpdateProperties({
                     ...componentItem.properties,
-                    textAlign: e.target.value,
+                    textAlign: e.target.value as "left" | "center" | "right",
                   })
                 }
               >
@@ -191,7 +276,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
               <Label>이미지 URL</Label>
               <Input
                 type="text"
-                value={componentItem.properties.src || defaultProps.src}
+                value={componentItem.properties.src || defaultProps.src || ""}
                 onChange={(e) =>
                   onUpdateProperties({
                     ...componentItem.properties,
@@ -204,7 +289,7 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
               <Label>대체 텍스트</Label>
               <Input
                 type="text"
-                value={componentItem.properties.alt || defaultProps.alt}
+                value={componentItem.properties.alt || defaultProps.alt || ""}
                 onChange={(e) =>
                   onUpdateProperties({
                     ...componentItem.properties,
@@ -216,7 +301,11 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
             <RangeInput
               label="너비"
               value={parseInt(
-                componentItem.properties.width || defaultProps.width
+                (
+                  componentItem.properties.width ||
+                  defaultProps.width ||
+                  "80%"
+                ).replace("%", "")
               )}
               min={0}
               max={100}
@@ -244,12 +333,29 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
               />
             </PropertyGroup>
             <PropertyGroup>
+              <Label>링크 URL</Label>
+              <Input
+                type="text"
+                value={
+                  componentItem.properties.href || defaultProps.href || "#"
+                }
+                onChange={(e) =>
+                  onUpdateProperties({
+                    ...componentItem.properties,
+                    href: e.target.value,
+                  })
+                }
+              />
+            </PropertyGroup>
+            {textStyleControls}
+            <PropertyGroup>
               <Label>배경색</Label>
               <Input
                 type="color"
                 value={
                   componentItem.properties.backgroundColor ||
-                  defaultProps.backgroundColor
+                  defaultProps.backgroundColor ||
+                  "#1a73e8"
                 }
                 onChange={(e) =>
                   onUpdateProperties({
@@ -263,7 +369,11 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
               <Label>텍스트 색상</Label>
               <Input
                 type="color"
-                value={componentItem.properties.color || defaultProps.color}
+                value={
+                  componentItem.properties.color ||
+                  defaultProps.color ||
+                  "#ffffff"
+                }
                 onChange={(e) =>
                   onUpdateProperties({
                     ...componentItem.properties,
@@ -291,7 +401,9 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
               <Label>링크 URL</Label>
               <Input
                 type="text"
-                value={componentItem.properties.href || defaultProps.href}
+                value={
+                  componentItem.properties.href || defaultProps.href || "#"
+                }
                 onChange={(e) =>
                   onUpdateProperties({
                     ...componentItem.properties,
@@ -300,11 +412,16 @@ const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 }
               />
             </PropertyGroup>
+            {textStyleControls}
             <PropertyGroup>
               <Label>색상</Label>
               <Input
                 type="color"
-                value={componentItem.properties.color || defaultProps.color}
+                value={
+                  componentItem.properties.color ||
+                  defaultProps.color ||
+                  "#1a73e8"
+                }
                 onChange={(e) =>
                   onUpdateProperties({
                     ...componentItem.properties,
@@ -421,6 +538,26 @@ const Select = styled.select`
   border: 1px solid #e0e0e0;
   border-radius: 4px;
   background-color: white;
+`;
+
+const StyleButtonGroup = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const StyleButton = styled.button<{ $active?: boolean }>`
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: ${({ $active }) => ($active ? "#1a73e8" : "#fff")};
+  color: ${({ $active }) => ($active ? "#fff" : "#333")};
+  cursor: pointer;
+  font-weight: 600;
+
+  &:hover {
+    background: ${({ $active }) => ($active ? "#1557b0" : "#f5f5f5")};
+  }
 `;
 
 export default PropertyPanel;

@@ -14,23 +14,34 @@ export interface ComponentItem {
   type: ComponentType;
   content: string;
   properties: {
+    // Common properties
     width?: string;
-    height?: string;
-    color?: string;
+    paddingX?: string;
+    paddingY?: string;
+    align?: "left" | "center" | "right";
+    border?: string;
+    borderRadius?: string;
     backgroundColor?: string;
+    cssClass?: string;
+
+    // Text & Link & Button common properties
+    color?: string;
     fontSize?: string;
     fontFamily?: string;
-    fontWeight?: string;
-    fontStyle?: string;
-    textDecoration?: string;
+    fontWeight?: "normal" | "bold";
+    fontStyle?: "normal" | "italic";
+    textDecoration?: "none" | "underline" | "line-through";
     textAlign?: "left" | "center" | "right";
-    padding?: string;
-    margin?: string;
-    borderRadius?: string;
-    href?: string;
+
+    // Image specific
     src?: string;
     alt?: string;
-    display?: string;
+    title?: string;
+
+    // Button & Link specific
+    href?: string;
+    target?: string;
+    rel?: string;
   };
 }
 

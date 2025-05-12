@@ -32,7 +32,7 @@ const Container = styled.div`
 `;
 
 const PreviewWrapper = styled.div<{ $deviceMode: "desktop" | "mobile" }>`
-  width: 100%;
+  width: ${EDITOR_CONSTANTS.maxWidth};
   max-width: ${({ $deviceMode }) =>
     $deviceMode === "desktop"
       ? EDITOR_CONSTANTS.maxWidth

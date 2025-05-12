@@ -1,5 +1,5 @@
 export const EDITOR_CONSTANTS = {
-  maxWidth: "800px", // 에디터와 미리보기의 최대 너비
+  maxWidth: "600px", // 에디터와 미리보기의 최대 너비
   contentPadding: "24px",
   toolbarHeight: "56px",
   borderRadius: "8px",

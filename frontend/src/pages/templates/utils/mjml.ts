@@ -5,18 +5,34 @@ import {
 } from "../constants/defaultProperties";
 import type { ComponentItem, LayoutItem } from "../types/editor";
 
+const MJML_BODY_WIDTH = 600; // MJML 기본 body width
+
+const convertPercentageToPx = (
+  percentageStr: string,
+  columnCount: number = 1
+): string => {
+  if (!percentageStr.includes("%")) return percentageStr;
+  const percentage = parseInt(percentageStr);
+  const columnWidth = MJML_BODY_WIDTH / columnCount;
+  return `${Math.round((columnWidth * percentage) / 100)}px`;
+};
+
 export const convertToMJML = (layouts: LayoutItem[]): string => {
   const mjmlContent = layouts
     .map((layout) => {
       const columns = layout.children.map((component) => {
-        return generateMJMLComponent(component);
+        return generateMJMLComponent(component, layout.children.length);
       });
 
       if (layout.type === "footer") {
         return `
-          <mj-section padding="${
-            DEFAULT_LAYOUT_PROPERTIES.padding
-          }" background-color="${DEFAULT_LAYOUT_PROPERTIES.backgroundColor}">
+          <mj-section 
+            padding-left="${DEFAULT_LAYOUT_PROPERTIES.paddingX}"
+            padding-right="${DEFAULT_LAYOUT_PROPERTIES.paddingX}"
+            padding-top="${DEFAULT_LAYOUT_PROPERTIES.paddingY}"
+            padding-bottom="${DEFAULT_LAYOUT_PROPERTIES.paddingY}"
+            background-color="${DEFAULT_LAYOUT_PROPERTIES.backgroundColor}"
+          >
             <mj-column vertical-align="${
               DEFAULT_LAYOUT_PROPERTIES.verticalAlign
             }">
@@ -28,9 +44,13 @@ export const convertToMJML = (layouts: LayoutItem[]): string => {
 
       const columnWidth = `${100 / layout.children.length}%`;
       return `
-        <mj-section padding="${
-          DEFAULT_LAYOUT_PROPERTIES.padding
-        }" background-color="${DEFAULT_LAYOUT_PROPERTIES.backgroundColor}">
+        <mj-section 
+          padding-left="${DEFAULT_LAYOUT_PROPERTIES.paddingX}"
+          padding-right="${DEFAULT_LAYOUT_PROPERTIES.paddingX}"
+          padding-top="${DEFAULT_LAYOUT_PROPERTIES.paddingY}"
+          padding-bottom="${DEFAULT_LAYOUT_PROPERTIES.paddingY}"
+          background-color="${DEFAULT_LAYOUT_PROPERTIES.backgroundColor}"
+        >
           ${columns
             .map(
               (column) => `
@@ -64,7 +84,10 @@ export const convertToMJML = (layouts: LayoutItem[]): string => {
   return fullMJML;
 };
 
-const generateMJMLComponent = (component: ComponentItem): string => {
+const generateMJMLComponent = (
+  component: ComponentItem,
+  columnCount: number = 1
+): string => {
   const defaultProps = DEFAULT_COMPONENT_PROPERTIES[component.type];
 
   switch (component.type) {
@@ -75,15 +98,39 @@ const generateMJMLComponent = (component: ComponentItem): string => {
           font-size="${
             component.properties.fontSize || defaultProps.properties.fontSize
           }"
-          align="${
-            component.properties.textAlign || defaultProps.properties.textAlign
+          font-family="${
+            component.properties.fontFamily ||
+            defaultProps.properties.fontFamily
           }"
           font-weight="${
             component.properties.fontWeight ||
             defaultProps.properties.fontWeight
           }"
-          padding="${
-            component.properties.padding || defaultProps.properties.padding
+          font-style="${
+            component.properties.fontStyle || defaultProps.properties.fontStyle
+          }"
+          text-decoration="${
+            component.properties.textDecoration ||
+            defaultProps.properties.textDecoration
+          }"
+          align="${
+            component.properties.textAlign || defaultProps.properties.textAlign
+          }"
+          padding-left="${
+            component.properties.paddingX || defaultProps.properties.paddingX
+          }"
+          padding-right="${
+            component.properties.paddingX || defaultProps.properties.paddingX
+          }"
+          padding-top="${
+            component.properties.paddingY || defaultProps.properties.paddingY
+          }"
+          padding-bottom="${
+            component.properties.paddingY || defaultProps.properties.paddingY
+          }"
+          border-radius="${
+            component.properties.borderRadius ||
+            defaultProps.properties.borderRadius
           }"
         >
           ${component.content}
@@ -91,19 +138,29 @@ const generateMJMLComponent = (component: ComponentItem): string => {
       `;
 
     case "image":
+      const width = component.properties.width || defaultProps.properties.width;
       return `
         <mj-image
           src="${component.properties.src || defaultProps.properties.src}"
           alt="${component.properties.alt || defaultProps.properties.alt}"
-          width="${component.properties.width || defaultProps.properties.width}"
-          height="${
-            component.properties.height || defaultProps.properties.height
+          width="${convertPercentageToPx(width, columnCount)}"
+          align="center"
+          padding-left="${
+            component.properties.paddingX || defaultProps.properties.paddingX
+          }"
+          padding-right="${
+            component.properties.paddingX || defaultProps.properties.paddingX
+          }"
+          padding-top="${
+            component.properties.paddingY || defaultProps.properties.paddingY
+          }"
+          padding-bottom="${
+            component.properties.paddingY || defaultProps.properties.paddingY
           }"
           border-radius="${
             component.properties.borderRadius ||
             defaultProps.properties.borderRadius
           }"
-          padding="${component.properties.padding || "0px"}"
         />
       `;
 
@@ -115,17 +172,44 @@ const generateMJMLComponent = (component: ComponentItem): string => {
             defaultProps.properties.backgroundColor
           }"
           color="${component.properties.color || defaultProps.properties.color}"
+          font-family="${
+            component.properties.fontFamily ||
+            defaultProps.properties.fontFamily
+          }"
+          font-size="${
+            component.properties.fontSize || defaultProps.properties.fontSize
+          }"
+          font-weight="${
+            component.properties.fontWeight ||
+            defaultProps.properties.fontWeight
+          }"
+          font-style="${
+            component.properties.fontStyle || defaultProps.properties.fontStyle
+          }"
+          text-decoration="${
+            component.properties.textDecoration ||
+            defaultProps.properties.textDecoration
+          }"
+          align="${
+            component.properties.textAlign || defaultProps.properties.textAlign
+          }"
+          padding-left="${
+            component.properties.paddingX || defaultProps.properties.paddingX
+          }"
+          padding-right="${
+            component.properties.paddingX || defaultProps.properties.paddingX
+          }"
+          padding-top="${
+            component.properties.paddingY || defaultProps.properties.paddingY
+          }"
+          padding-bottom="${
+            component.properties.paddingY || defaultProps.properties.paddingY
+          }"
           border-radius="${
             component.properties.borderRadius ||
             defaultProps.properties.borderRadius
           }"
-          padding="${
-            component.properties.padding || defaultProps.properties.padding
-          }"
-          width="${component.properties.width || defaultProps.properties.width}"
-          min-width="${
-            component.properties.minWidth || defaultProps.properties.minWidth
-          }"
+          href="${component.properties.href || defaultProps.properties.href}"
         >
           ${component.content}
         </mj-button>
@@ -134,8 +218,17 @@ const generateMJMLComponent = (component: ComponentItem): string => {
     case "link":
       return `
         <mj-text
-          padding="${
-            component.properties.padding || defaultProps.properties.padding
+          padding-left="${
+            component.properties.paddingX || defaultProps.properties.paddingX
+          }"
+          padding-right="${
+            component.properties.paddingX || defaultProps.properties.paddingX
+          }"
+          padding-top="${
+            component.properties.paddingY || defaultProps.properties.paddingY
+          }"
+          padding-bottom="${
+            component.properties.paddingY || defaultProps.properties.paddingY
           }"
           align="${
             component.properties.textAlign || defaultProps.properties.textAlign
@@ -147,13 +240,29 @@ const generateMJMLComponent = (component: ComponentItem): string => {
               color: ${
                 component.properties.color || defaultProps.properties.color
               };
-              text-decoration: ${
-                component.properties.textDecoration ||
-                defaultProps.properties.textDecoration
+              font-family: ${
+                component.properties.fontFamily ||
+                defaultProps.properties.fontFamily
               };
               font-size: ${
                 component.properties.fontSize ||
                 defaultProps.properties.fontSize
+              };
+              font-weight: ${
+                component.properties.fontWeight ||
+                defaultProps.properties.fontWeight
+              };
+              font-style: ${
+                component.properties.fontStyle ||
+                defaultProps.properties.fontStyle
+              };
+              text-decoration: ${
+                component.properties.textDecoration ||
+                defaultProps.properties.textDecoration
+              };
+              border-radius: ${
+                component.properties.borderRadius ||
+                defaultProps.properties.borderRadius
               };
             "
           >
