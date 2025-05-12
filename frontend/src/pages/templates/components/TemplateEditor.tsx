@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { useDrop } from "react-dnd";
 import styled from "styled-components";
+import { EDITOR_CONSTANTS } from "../constants/styles";
 import type { ComponentType, LayoutItem, LayoutType } from "../types/editor";
+import CodePanel from "./CodePanel";
 import ComponentPanel from "./ComponentPanel";
 import DraggableLayoutBox from "./DraggableLayoutBox";
 import LayoutPanel from "./LayoutPanel";
+import PreviewPanel from "./PreviewPanel";
 
 type ViewMode = "editor" | "preview" | "code";
 type DeviceMode = "desktop" | "mobile";
@@ -74,6 +77,38 @@ const TemplateEditor = () => {
     }),
   }));
 
+  const renderContent = () => {
+    switch (viewMode) {
+      case "preview":
+        return <PreviewPanel layouts={layouts} deviceMode={deviceMode} />;
+      case "code":
+        return <CodePanel layouts={layouts} />;
+      default:
+        return (
+          <EditorWrapper $deviceMode={deviceMode}>
+            <Canvas ref={drop} $isOver={isOver}>
+              {layouts.map((layout, index) => (
+                <DraggableLayoutBox
+                  key={layout.id}
+                  layout={layout}
+                  index={index}
+                  isSelected={selectedItemId === layout.id}
+                  onClick={() => setSelectedItemId(layout.id)}
+                  onReorder={handleLayoutsReorder}
+                  onAddComponent={handleAddComponent}
+                />
+              ))}
+              {layouts.length === 0 && (
+                <EmptyMessage>
+                  레이아웃을 이곳에 드래그하여 추가하세요
+                </EmptyMessage>
+              )}
+            </Canvas>
+          </EditorWrapper>
+        );
+    }
+  };
+
   return (
     <Container>
       <LeftPanel>
@@ -122,26 +157,7 @@ const TemplateEditor = () => {
           </ToolGroup>
         </Toolbar>
 
-        <EditorContent>
-          <Canvas ref={drop} $isOver={isOver}>
-            {layouts.map((layout, index) => (
-              <DraggableLayoutBox
-                key={layout.id}
-                layout={layout}
-                index={index}
-                isSelected={selectedItemId === layout.id}
-                onClick={() => setSelectedItemId(layout.id)}
-                onReorder={handleLayoutsReorder}
-                onAddComponent={handleAddComponent}
-              />
-            ))}
-            {layouts.length === 0 && (
-              <EmptyMessage>
-                레이아웃을 이곳에 드래그하여 추가하세요
-              </EmptyMessage>
-            )}
-          </Canvas>
-        </EditorContent>
+        <EditorContent>{renderContent()}</EditorContent>
       </CenterPanel>
 
       <RightPanel>
@@ -261,16 +277,34 @@ const ToolButton = styled.button<{ $active?: boolean }>`
 
 const EditorContent = styled.div`
   flex: 1;
-  padding: 24px;
+  padding: ${EDITOR_CONSTANTS.contentPadding};
   overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  background: ${EDITOR_CONSTANTS.backgroundColor};
+`;
+
+const EditorWrapper = styled.div<{ $deviceMode: DeviceMode }>`
+  width: 100%;
+  max-width: ${({ $deviceMode }) =>
+    $deviceMode === "desktop"
+      ? EDITOR_CONSTANTS.maxWidth
+      : EDITOR_CONSTANTS.mobileWidth};
+  display: flex;
+  flex-direction: column;
 `;
 
 const Canvas = styled.div<{ $isOver?: boolean }>`
-  min-height: 100%;
-  background: ${({ $isOver }) => ($isOver ? "#f0f7ff" : "#f8f8f8")};
-  border-radius: 8px;
-  padding: 24px;
+  width: 100%;
+  min-height: calc(
+    100vh - ${EDITOR_CONSTANTS.toolbarHeight} -
+      ${EDITOR_CONSTANTS.contentPadding} * 2
+  );
+  background: ${({ $isOver }) => ($isOver ? "#f0f7ff" : "white")};
+  border-radius: ${EDITOR_CONSTANTS.borderRadius};
+  padding: ${EDITOR_CONSTANTS.contentPadding};
   transition: background-color 0.2s;
+  border: 1px solid ${EDITOR_CONSTANTS.borderColor};
 `;
 
 const EmptyMessage = styled.div`
