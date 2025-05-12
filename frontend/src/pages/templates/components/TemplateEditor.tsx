@@ -2,12 +2,18 @@ import { useState } from "react";
 import { useDrop } from "react-dnd";
 import styled from "styled-components";
 import { EDITOR_CONSTANTS } from "../constants/styles";
-import type { ComponentType, LayoutItem, LayoutType } from "../types/editor";
+import type {
+  ComponentItem,
+  ComponentType,
+  LayoutItem,
+  LayoutType,
+} from "../types/editor";
 import CodePanel from "./CodePanel";
 import ComponentPanel from "./ComponentPanel";
 import DraggableLayoutBox from "./DraggableLayoutBox";
 import LayoutPanel from "./LayoutPanel";
 import PreviewPanel from "./PreviewPanel";
+import PropertyPanel from "./PropertyPanel/index";
 
 type ViewMode = "editor" | "preview" | "code";
 type DeviceMode = "desktop" | "mobile";
@@ -17,6 +23,15 @@ const TemplateEditor = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("editor");
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("desktop");
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+
+  const selectedItem = selectedItemId
+    ? layouts.reduce<ComponentItem | LayoutItem | null>((found, layout) => {
+        if (found) return found;
+        if (layout.id === selectedItemId) return layout;
+        const component = layout.children.find((c) => c.id === selectedItemId);
+        return component || null;
+      }, null)
+    : null;
 
   const handleLayoutAdd = (layoutType: LayoutType) => {
     setLayouts((prev) => [
@@ -63,6 +78,58 @@ const TemplateEditor = () => {
     );
   };
 
+  const handleUpdateProperties = (properties: Record<string, any>) => {
+    if (!selectedItemId) return;
+
+    setLayouts((prev) =>
+      prev.map((layout) => {
+        const updatedChildren = layout.children.map((component) => {
+          if (component.id === selectedItemId) {
+            return {
+              ...component,
+              properties: { ...component.properties, ...properties },
+            };
+          }
+          return component;
+        });
+        return { ...layout, children: updatedChildren };
+      })
+    );
+  };
+
+  const handleUpdateContent = (content: string) => {
+    if (!selectedItemId) return;
+
+    setLayouts((prev) =>
+      prev.map((layout) => {
+        const updatedChildren = layout.children.map((component) => {
+          if (component.id === selectedItemId) {
+            return { ...component, content };
+          }
+          return component;
+        });
+        return { ...layout, children: updatedChildren };
+      })
+    );
+  };
+
+  const handleDeleteComponent = (componentId: string) => {
+    setLayouts((prev) =>
+      prev.map((layout) => ({
+        ...layout,
+        children: layout.children.filter(
+          (component) => component.id !== componentId
+        ),
+      }))
+    );
+    setSelectedItemId(null);
+  };
+
+  const handleDeleteLayout = (layoutId: string) => {
+    setLayouts((prev) => prev.filter((layout) => layout.id !== layoutId));
+    setSelectedItemId(null);
+  };
+
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ["layout", "layoutBox"],
     drop: (item: { type: string; layoutType?: LayoutType }, monitor) => {
@@ -96,6 +163,8 @@ const TemplateEditor = () => {
                   onClick={() => setSelectedItemId(layout.id)}
                   onReorder={handleLayoutsReorder}
                   onAddComponent={handleAddComponent}
+                  onSelectComponent={setSelectedItemId}
+                  selectedComponentId={selectedItemId}
                 />
               ))}
               {layouts.length === 0 && (
@@ -161,8 +230,13 @@ const TemplateEditor = () => {
       </CenterPanel>
 
       <RightPanel>
-        <PanelTitle>속성</PanelTitle>
-        {selectedItemId && <div>선택된 아이템: {selectedItemId}</div>}
+        <PropertyPanel
+          selectedItem={selectedItem}
+          onUpdateProperties={handleUpdateProperties}
+          onUpdateContent={handleUpdateContent}
+          onDeleteComponent={handleDeleteComponent}
+          onDeleteLayout={handleDeleteLayout}
+        />
       </RightPanel>
     </Container>
   );
@@ -181,33 +255,56 @@ const getDefaultContent = (type: ComponentType): string => {
   }
 };
 
-const getDefaultProperties = (type: ComponentType) => {
+const getDefaultProperties = (type: ComponentType): Record<string, any> => {
   switch (type) {
     case "text":
       return {
         color: "#333333",
         fontSize: "16px",
-        textAlign: "left" as const,
+        textAlign: "center",
+        fontWeight: "normal",
+        lineHeight: "1.5",
+        margin: "0px",
+        padding: "0px",
       };
     case "image":
       return {
-        width: "100%",
-        height: "auto",
         src: "https://via.placeholder.com/300x200",
         alt: "이미지 설명",
+        width: "80%",
+        height: "auto",
+        margin: "0 auto",
+        display: "block",
+        borderRadius: "4px",
       };
     case "button":
       return {
         backgroundColor: "#1a73e8",
         color: "#ffffff",
-        padding: "8px 16px",
+        padding: "12px 24px",
         borderRadius: "4px",
+        fontSize: "16px",
+        textAlign: "center",
+        textDecoration: "none",
+        display: "inline-block",
+        margin: "0 auto",
+        border: "none",
+        width: "auto",
+        minWidth: "120px",
       };
     case "link":
       return {
         color: "#1a73e8",
         href: "#",
+        textDecoration: "none",
+        fontSize: "16px",
+        textAlign: "center",
+        display: "block",
+        margin: "0 auto",
+        padding: "8px 0",
       };
+    default:
+      return {};
   }
 };
 

@@ -7,6 +7,8 @@ export type LayoutType =
 
 export type ComponentType = "text" | "image" | "button" | "link";
 
+export type DeviceMode = "desktop" | "mobile";
+
 export interface ComponentItem {
   id: string;
   type: ComponentType;
@@ -17,6 +19,10 @@ export interface ComponentItem {
     color?: string;
     backgroundColor?: string;
     fontSize?: string;
+    fontFamily?: string;
+    fontWeight?: string;
+    fontStyle?: string;
+    textDecoration?: string;
     textAlign?: "left" | "center" | "right";
     padding?: string;
     margin?: string;
@@ -24,6 +30,7 @@ export interface ComponentItem {
     href?: string;
     src?: string;
     alt?: string;
+    display?: string;
   };
 }
 

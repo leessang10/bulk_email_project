@@ -1,6 +1,10 @@
 import { useEffect, useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import styled from "styled-components";
+import {
+  DEFAULT_COMPONENT_PROPERTIES,
+  DEFAULT_LAYOUT_PROPERTIES,
+} from "../constants/defaultProperties";
 import type { ComponentType, LayoutItem } from "../types/editor";
 import { LAYOUT_STYLES } from "../types/editor";
 
@@ -11,6 +15,8 @@ interface DraggableLayoutBoxProps {
   onClick: () => void;
   onReorder: (dragIndex: number, hoverIndex: number) => void;
   onAddComponent: (layoutId: string, componentType: ComponentType) => void;
+  onSelectComponent: (componentId: string) => void;
+  selectedComponentId: string | null;
 }
 
 interface DragItem {
@@ -28,6 +34,8 @@ const DraggableLayoutBox = ({
   onClick,
   onReorder,
   onAddComponent,
+  onSelectComponent,
+  selectedComponentId,
 }: DraggableLayoutBoxProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const layoutStyle = LAYOUT_STYLES[layout.type];
@@ -43,116 +51,138 @@ const DraggableLayoutBox = ({
     }
   }, [layout.id, layoutStyle.isFooter, layout.children, onAddComponent]);
 
-  const [{ isDragging }, drag] = useDrag<
-    DragItem,
-    void,
-    { isDragging: boolean }
-  >(
-    () => ({
-      type: "layoutBox",
-      item: {
-        type: "layoutBox",
-        id: layout.id,
-        originalIndex: index,
-        currentIndex: index,
-      },
-      collect: (monitor) => ({
-        isDragging: monitor.isDragging(),
-      }),
+  const [{ isDragging }, drag] = useDrag({
+    type: "layoutBox",
+    item: { type: "layoutBox", index },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
     }),
-    [layout.id, index]
-  );
+  });
 
-  const [{ isOver }, drop] = useDrop<DragItem, void, { isOver: boolean }>(
-    () => ({
-      accept: ["layoutBox", "component"],
-      hover: (item, monitor) => {
-        if (item.type === "layoutBox") {
-          if (!ref.current) return;
+  const [{ isOver }, drop] = useDrop({
+    accept: ["component", "layoutBox"],
+    hover: (item: { type: string; index?: number }, monitor) => {
+      if (!ref.current) return;
 
-          const dragIndex = item.currentIndex!;
-          const hoverIndex = index;
+      if (item.type === "layoutBox" && typeof item.index === "number") {
+        const dragIndex = item.index;
+        const hoverIndex = index;
 
-          if (dragIndex === hoverIndex) return;
+        if (dragIndex === hoverIndex) return;
 
-          const hoverBoundingRect = ref.current.getBoundingClientRect();
-          const hoverMiddleY =
-            (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-          const clientOffset = monitor.getClientOffset();
-          if (!clientOffset) return;
-
-          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-
-          if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
-          if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
-
-          onReorder(dragIndex, hoverIndex);
-          item.currentIndex = hoverIndex;
-        }
-      },
-      drop: (item, monitor) => {
-        if (item.type === "component" && !monitor.didDrop()) {
-          // 컴포넌트 개수 제한 확인
-          if (layout.children.length >= layoutStyle.maxComponents) {
-            return;
-          }
-          // 푸터에 이미 버튼이 있는 경우 추가 방지
-          if (layoutStyle.isFooter && item.componentType === "button") {
-            return;
-          }
-          onAddComponent(layout.id, item.componentType!);
-        }
-      },
-      collect: (monitor) => ({
-        isOver: monitor.isOver({ shallow: true }),
-      }),
+        onReorder(dragIndex, hoverIndex);
+        item.index = hoverIndex;
+      }
+    },
+    drop: (item: { type: string; componentType?: ComponentType }, monitor) => {
+      if (
+        !monitor.didDrop() &&
+        item.type === "component" &&
+        item.componentType
+      ) {
+        onAddComponent(layout.id, item.componentType);
+      }
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver({ shallow: true }),
     }),
-    [
-      index,
-      onReorder,
-      layout.id,
-      onAddComponent,
-      layout.children.length,
-      layoutStyle.maxComponents,
-      layoutStyle.isFooter,
-    ]
-  );
+  });
 
   drag(drop(ref));
 
   return (
     <LayoutBox
       ref={ref}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
+      onClick={onClick}
       $isSelected={isSelected}
       $isDragging={isDragging}
       $isOver={isOver && layout.children.length < layoutStyle.maxComponents}
+      style={{
+        padding: DEFAULT_LAYOUT_PROPERTIES.padding,
+        backgroundColor: DEFAULT_LAYOUT_PROPERTIES.backgroundColor,
+        borderRadius: DEFAULT_LAYOUT_PROPERTIES.borderRadius,
+      }}
     >
-      <Content $columns={layoutStyle.template}>
+      <Content
+        $columns={layoutStyle.template}
+        style={{
+          alignItems: DEFAULT_LAYOUT_PROPERTIES.verticalAlign,
+          justifyContent: DEFAULT_LAYOUT_PROPERTIES.align,
+        }}
+      >
         {layout.children.map((component) => (
-          <ComponentBox key={component.id}>
-            {component.type === "text" && <div>{component.content}</div>}
+          <ComponentBox
+            key={component.id}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectComponent(component.id);
+            }}
+            $isSelected={selectedComponentId === component.id}
+          >
+            {component.type === "text" && (
+              <div
+                style={{
+                  ...DEFAULT_COMPONENT_PROPERTIES.text.properties,
+                  color:
+                    component.properties.color ||
+                    DEFAULT_COMPONENT_PROPERTIES.text.properties.color,
+                  fontSize:
+                    component.properties.fontSize ||
+                    DEFAULT_COMPONENT_PROPERTIES.text.properties.fontSize,
+                  textAlign:
+                    component.properties.textAlign ||
+                    DEFAULT_COMPONENT_PROPERTIES.text.properties.textAlign,
+                }}
+              >
+                {component.content}
+              </div>
+            )}
             {component.type === "image" && (
               <img
-                src={component.properties.src}
-                alt={component.properties.alt}
+                src={
+                  component.properties.src ||
+                  DEFAULT_COMPONENT_PROPERTIES.image.properties.src
+                }
+                alt={
+                  component.properties.alt ||
+                  DEFAULT_COMPONENT_PROPERTIES.image.properties.alt
+                }
                 style={{
-                  width: component.properties.width || "100%",
-                  height: component.properties.height || "auto",
+                  width:
+                    component.properties.width ||
+                    DEFAULT_COMPONENT_PROPERTIES.image.properties.width,
+                  height:
+                    component.properties.height ||
+                    DEFAULT_COMPONENT_PROPERTIES.image.properties.height,
+                  margin:
+                    component.properties.margin ||
+                    DEFAULT_COMPONENT_PROPERTIES.image.properties.margin,
+                  display:
+                    component.properties.display ||
+                    DEFAULT_COMPONENT_PROPERTIES.image.properties.display,
+                  borderRadius:
+                    component.properties.borderRadius ||
+                    DEFAULT_COMPONENT_PROPERTIES.image.properties.borderRadius,
                 }}
               />
             )}
             {component.type === "button" && (
               <button
                 style={{
-                  backgroundColor: component.properties.backgroundColor,
-                  color: component.properties.color,
-                  padding: component.properties.padding,
-                  borderRadius: component.properties.borderRadius,
-                  width: "100%",
+                  ...DEFAULT_COMPONENT_PROPERTIES.button.properties,
+                  backgroundColor:
+                    component.properties.backgroundColor ||
+                    DEFAULT_COMPONENT_PROPERTIES.button.properties
+                      .backgroundColor,
+                  color:
+                    component.properties.color ||
+                    DEFAULT_COMPONENT_PROPERTIES.button.properties.color,
+                  padding:
+                    component.properties.padding ||
+                    DEFAULT_COMPONENT_PROPERTIES.button.properties.padding,
+                  borderRadius:
+                    component.properties.borderRadius ||
+                    DEFAULT_COMPONENT_PROPERTIES.button.properties.borderRadius,
                 }}
               >
                 {layoutStyle.isFooter ? "수신거부" : component.content}
@@ -160,10 +190,15 @@ const DraggableLayoutBox = ({
             )}
             {component.type === "link" && (
               <a
-                href={component.properties.href}
+                href={
+                  component.properties.href ||
+                  DEFAULT_COMPONENT_PROPERTIES.link.properties.href
+                }
                 style={{
-                  color: component.properties.color,
-                  textDecoration: "none",
+                  ...DEFAULT_COMPONENT_PROPERTIES.link.properties,
+                  color:
+                    component.properties.color ||
+                    DEFAULT_COMPONENT_PROPERTIES.link.properties.color,
                 }}
               >
                 {component.content}
@@ -187,7 +222,6 @@ const LayoutBox = styled.div<{
   $isDragging: boolean;
   $isOver: boolean;
 }>`
-  padding: 10px;
   background: white;
   border: 2px solid
     ${({ $isSelected }) => ($isSelected ? "#1a73e8" : "#e0e0e0")};
@@ -212,27 +246,33 @@ const Content = styled.div<{ $columns: string }>`
   display: grid;
   grid-template-columns: ${({ $columns }) => $columns};
   gap: 16px;
-  padding: 0px;
-  background: #f8f8f8;
-  border-radius: 4px;
   min-height: 100px;
 `;
 
-const ComponentBox = styled.div`
-  background: white;
-  padding: 16px;
-  border-radius: 4px;
-  border: 1px solid #e0e0e0;
-`;
-
-const EmptyContent = styled.div`
-  text-align: center;
-  color: #999;
-  padding: 20px;
-  font-size: 32px;
+const ComponentBox = styled.div<{ $isSelected: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid
+    ${({ $isSelected }) => ($isSelected ? "#1a73e8" : "transparent")};
+  border-radius: 4px;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #1a73e8;
+    background: #f8f9fa;
+  }
+`;
+
+const EmptyContent = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 32px;
   background: #f0f0f0;
   border: 2px dashed #ccc;
   border-radius: 4px;
