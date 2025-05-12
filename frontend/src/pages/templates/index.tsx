@@ -1,5 +1,13 @@
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import TemplateEditor from "./components/TemplateEditor";
+
 const TemplatesPage = () => {
-  return <div>이메일 템플릿 관리 페이지</div>;
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <TemplateEditor />
+    </DndProvider>
+  );
 };
 
 export default TemplatesPage;

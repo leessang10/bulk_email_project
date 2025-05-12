@@ -15,7 +15,7 @@ const Layout = styled.div`
 
 const Content = styled.div`
   flex: 1;
-  padding: 40px;
+  padding: 10px;
   background: #f7f9fb;
 `;
 
