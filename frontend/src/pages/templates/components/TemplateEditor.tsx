@@ -78,13 +78,14 @@ const TemplateEditor = () => {
     );
   };
 
-  const handleUpdateProperties = (properties: Record<string, any>) => {
-    if (!selectedItemId) return;
-
+  const handleUpdateProperties = (
+    componentId: string,
+    properties: Record<string, any>
+  ) => {
     setLayouts((prev) =>
       prev.map((layout) => {
         const updatedChildren = layout.children.map((component) => {
-          if (component.id === selectedItemId) {
+          if (component.id === componentId) {
             return {
               ...component,
               properties: { ...component.properties, ...properties },
@@ -97,13 +98,11 @@ const TemplateEditor = () => {
     );
   };
 
-  const handleUpdateContent = (content: string) => {
-    if (!selectedItemId) return;
-
+  const handleUpdateContent = (componentId: string, content: string) => {
     setLayouts((prev) =>
       prev.map((layout) => {
         const updatedChildren = layout.children.map((component) => {
-          if (component.id === selectedItemId) {
+          if (component.id === componentId) {
             return { ...component, content };
           }
           return component;
@@ -165,6 +164,8 @@ const TemplateEditor = () => {
                   onAddComponent={handleAddComponent}
                   onSelectComponent={setSelectedItemId}
                   selectedComponentId={selectedItemId}
+                  onUpdateProperties={handleUpdateProperties}
+                  onUpdateContent={handleUpdateContent}
                 />
               ))}
               {layouts.length === 0 && (

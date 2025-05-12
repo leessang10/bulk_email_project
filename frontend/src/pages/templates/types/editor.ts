@@ -88,6 +88,5 @@ export const LAYOUT_STYLES: Record<
     columns: 1,
     template: "1fr",
     maxComponents: 1,
-    isFooter: true,
   },
 };

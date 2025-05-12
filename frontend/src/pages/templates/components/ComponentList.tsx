@@ -23,7 +23,7 @@ export const layouts = [
   { id: "layout-2", label: "2열 레이아웃" },
   { id: "layout-3", label: "3열 레이아웃" },
   { id: "layout-4", label: "4열 레이아웃" },
-  { id: "footer", label: "푸터 (수신거부 버튼)" },
+  { id: "footer", label: "푸터" },
 ];
 
 const ComponentList = () => {

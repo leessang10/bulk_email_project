@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import styled from "styled-components";
 import {
@@ -17,6 +17,8 @@ interface DraggableLayoutBoxProps {
   onAddComponent: (layoutId: string, componentType: ComponentType) => void;
   onSelectComponent: (componentId: string) => void;
   selectedComponentId: string | null;
+  onUpdateProperties: (properties: Record<string, any>) => void;
+  onUpdateContent: (content: string) => void;
 }
 
 interface DragItem {
@@ -36,20 +38,11 @@ const DraggableLayoutBox = ({
   onAddComponent,
   onSelectComponent,
   selectedComponentId,
+  onUpdateProperties,
+  onUpdateContent,
 }: DraggableLayoutBoxProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const layoutStyle = LAYOUT_STYLES[layout.type];
-
-  // 푸터 레이아웃인 경우 수신거부 버튼 자동 추가 (이미 버튼이 있는 경우 제외)
-  useEffect(() => {
-    if (
-      layoutStyle.isFooter &&
-      layout.children.length === 0 &&
-      !layout.children.some((child) => child.type === "button")
-    ) {
-      onAddComponent(layout.id, "button");
-    }
-  }, [layout.id, layoutStyle.isFooter, layout.children, onAddComponent]);
 
   const [{ isDragging }, drag] = useDrag({
     type: "layoutBox",
@@ -98,7 +91,10 @@ const DraggableLayoutBox = ({
       $isDragging={isDragging}
       $isOver={isOver && layout.children.length < layoutStyle.maxComponents}
       style={{
-        padding: DEFAULT_LAYOUT_PROPERTIES.padding,
+        paddingLeft: DEFAULT_LAYOUT_PROPERTIES.paddingX,
+        paddingRight: DEFAULT_LAYOUT_PROPERTIES.paddingX,
+        paddingTop: DEFAULT_LAYOUT_PROPERTIES.paddingY,
+        paddingBottom: DEFAULT_LAYOUT_PROPERTIES.paddingY,
         backgroundColor: DEFAULT_LAYOUT_PROPERTIES.backgroundColor,
         borderRadius: DEFAULT_LAYOUT_PROPERTIES.borderRadius,
       }}
@@ -151,15 +147,18 @@ const DraggableLayoutBox = ({
                   width:
                     component.properties.width ||
                     DEFAULT_COMPONENT_PROPERTIES.image.properties.width,
-                  height:
-                    component.properties.height ||
-                    DEFAULT_COMPONENT_PROPERTIES.image.properties.height,
-                  margin:
-                    component.properties.margin ||
-                    DEFAULT_COMPONENT_PROPERTIES.image.properties.margin,
-                  display:
-                    component.properties.display ||
-                    DEFAULT_COMPONENT_PROPERTIES.image.properties.display,
+                  paddingLeft:
+                    component.properties.paddingX ||
+                    DEFAULT_COMPONENT_PROPERTIES.image.properties.paddingX,
+                  paddingRight:
+                    component.properties.paddingX ||
+                    DEFAULT_COMPONENT_PROPERTIES.image.properties.paddingX,
+                  paddingTop:
+                    component.properties.paddingY ||
+                    DEFAULT_COMPONENT_PROPERTIES.image.properties.paddingY,
+                  paddingBottom:
+                    component.properties.paddingY ||
+                    DEFAULT_COMPONENT_PROPERTIES.image.properties.paddingY,
                   borderRadius:
                     component.properties.borderRadius ||
                     DEFAULT_COMPONENT_PROPERTIES.image.properties.borderRadius,
@@ -177,15 +176,24 @@ const DraggableLayoutBox = ({
                   color:
                     component.properties.color ||
                     DEFAULT_COMPONENT_PROPERTIES.button.properties.color,
-                  padding:
-                    component.properties.padding ||
-                    DEFAULT_COMPONENT_PROPERTIES.button.properties.padding,
+                  paddingLeft:
+                    component.properties.paddingX ||
+                    DEFAULT_COMPONENT_PROPERTIES.button.properties.paddingX,
+                  paddingRight:
+                    component.properties.paddingX ||
+                    DEFAULT_COMPONENT_PROPERTIES.button.properties.paddingX,
+                  paddingTop:
+                    component.properties.paddingY ||
+                    DEFAULT_COMPONENT_PROPERTIES.button.properties.paddingY,
+                  paddingBottom:
+                    component.properties.paddingY ||
+                    DEFAULT_COMPONENT_PROPERTIES.button.properties.paddingY,
                   borderRadius:
                     component.properties.borderRadius ||
                     DEFAULT_COMPONENT_PROPERTIES.button.properties.borderRadius,
                 }}
               >
-                {layoutStyle.isFooter ? "수신거부" : component.content}
+                {component.content}
               </button>
             )}
             {component.type === "link" && (
