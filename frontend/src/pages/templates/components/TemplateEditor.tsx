@@ -1,22 +1,148 @@
 import { useState } from "react";
 import { useDrop } from "react-dnd";
 import styled from "styled-components";
-import ComponentList from "./ComponentList";
+import type { LayoutItem, LayoutType } from "../types/editor";
+import DraggableLayoutBox from "./DraggableLayoutBox";
+import LayoutPanel from "./LayoutPanel";
 
-const EditorContainer = styled.div`
+type ViewMode = "editor" | "preview" | "code";
+type DeviceMode = "desktop" | "mobile";
+
+const TemplateEditor = () => {
+  const [layouts, setLayouts] = useState<LayoutItem[]>([]);
+  const [viewMode, setViewMode] = useState<ViewMode>("editor");
+  const [deviceMode, setDeviceMode] = useState<DeviceMode>("desktop");
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+
+  const handleLayoutAdd = (layoutType: LayoutType) => {
+    setLayouts((prev) => [
+      ...prev,
+      {
+        id: `layout-${Date.now()}`,
+        type: layoutType,
+        children: [],
+      },
+    ]);
+  };
+
+  const handleLayoutsReorder = (dragIndex: number, hoverIndex: number) => {
+    setLayouts((prev) => {
+      const newLayouts = [...prev];
+      const [removed] = newLayouts.splice(dragIndex, 1);
+      newLayouts.splice(hoverIndex, 0, removed);
+      return newLayouts;
+    });
+  };
+
+  const [{ isOver }, drop] = useDrop(() => ({
+    accept: ["layout", "layoutBox"],
+    drop: (item: { type: string; layoutType?: LayoutType }, monitor) => {
+      if (!monitor.didDrop()) {
+        if (item.type === "layout" && item.layoutType) {
+          handleLayoutAdd(item.layoutType);
+        }
+      }
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver({ shallow: true }),
+    }),
+  }));
+
+  return (
+    <Container>
+      <LeftPanel>
+        <PanelTitle>레이아웃 / 컴포넌트</PanelTitle>
+        <LayoutPanel />
+      </LeftPanel>
+
+      <CenterPanel>
+        <Toolbar>
+          <ToolGroup>
+            <ToolButton
+              $active={viewMode === "editor"}
+              onClick={() => setViewMode("editor")}
+            >
+              에디터
+            </ToolButton>
+            <ToolButton
+              $active={viewMode === "preview"}
+              onClick={() => setViewMode("preview")}
+            >
+              미리보기
+            </ToolButton>
+            <ToolButton
+              $active={viewMode === "code"}
+              onClick={() => setViewMode("code")}
+            >
+              코드
+            </ToolButton>
+          </ToolGroup>
+          <ToolGroup>
+            <ToolButton
+              $active={deviceMode === "desktop"}
+              onClick={() => setDeviceMode("desktop")}
+            >
+              데스크톱
+            </ToolButton>
+            <ToolButton
+              $active={deviceMode === "mobile"}
+              onClick={() => setDeviceMode("mobile")}
+            >
+              모바일
+            </ToolButton>
+          </ToolGroup>
+        </Toolbar>
+
+        <EditorContent>
+          <Canvas ref={drop} $isOver={isOver}>
+            {layouts.map((layout, index) => (
+              <DraggableLayoutBox
+                key={layout.id}
+                layout={layout}
+                index={index}
+                isSelected={selectedItemId === layout.id}
+                onClick={() => setSelectedItemId(layout.id)}
+                onReorder={handleLayoutsReorder}
+              />
+            ))}
+            {layouts.length === 0 && (
+              <EmptyMessage>
+                레이아웃을 이곳에 드래그하여 추가하세요
+              </EmptyMessage>
+            )}
+          </Canvas>
+        </EditorContent>
+      </CenterPanel>
+
+      <RightPanel>
+        <PanelTitle>속성</PanelTitle>
+        {selectedItemId && <div>선택된 아이템: {selectedItemId}</div>}
+      </RightPanel>
+    </Container>
+  );
+};
+
+const Container = styled.div`
   display: flex;
-  height: calc(100vh - 80px);
+  height: 100vh;
+  overflow: hidden;
   background: #fff;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+`;
+
+const PanelTitle = styled.h2`
+  font-size: 16px;
+  font-weight: 600;
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  margin: 0;
 `;
 
 const LeftPanel = styled.div`
   width: 280px;
-  border-right: 1px solid var(--gray-200);
-  background: var(--gray-50);
-  padding: var(--spacing-5);
-  overflow-y: auto;
+  border-right: 1px solid #e0e0e0;
+  background: #f8f8f8;
+  display: flex;
+  flex-direction: column;
 `;
 
 const CenterPanel = styled.div`
@@ -28,146 +154,57 @@ const CenterPanel = styled.div`
 
 const RightPanel = styled.div`
   width: 300px;
-  border-left: 1px solid var(--gray-200);
-  background: var(--gray-50);
-  padding: var(--spacing-5);
-  overflow-y: auto;
+  border-left: 1px solid #e0e0e0;
+  background: #f8f8f8;
+  display: flex;
+  flex-direction: column;
 `;
 
 const Toolbar = styled.div`
-  padding: var(--spacing-3) var(--spacing-5);
-  border-bottom: 1px solid var(--gray-200);
+  padding: 8px 16px;
+  border-bottom: 1px solid #e0e0e0;
   display: flex;
-  gap: var(--spacing-3);
+  gap: 16px;
 `;
 
-const ToolbarButton = styled.button<{ $active?: boolean }>`
-  padding: var(--spacing-2) var(--spacing-4);
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius-base);
-  background: ${({ $active }) => ($active ? "var(--primary)" : "#fff")};
-  color: ${({ $active }) => ($active ? "#fff" : "var(--gray-700)")};
-  font-size: var(--font-size-sm);
-  transition: all 0.2s;
+const ToolGroup = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const ToolButton = styled.button<{ $active?: boolean }>`
+  padding: 6px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: ${({ $active }) => ($active ? "#1a73e8" : "#fff")};
+  color: ${({ $active }) => ($active ? "#fff" : "#333")};
+  cursor: pointer;
+  font-size: 14px;
 
   &:hover {
-    background: ${({ $active }) =>
-      $active ? "var(--primary)" : "var(--gray-100)"};
+    background: ${({ $active }) => ($active ? "#1557b0" : "#f5f5f5")};
   }
 `;
 
 const EditorContent = styled.div`
   flex: 1;
-  padding: var(--spacing-5);
+  padding: 24px;
   overflow-y: auto;
 `;
 
-const DropZone = styled.div<{ $isOver?: boolean }>`
-  min-height: 200px;
-  border: 2px dashed
-    ${({ $isOver }) => ($isOver ? "var(--primary)" : "var(--gray-300)")};
-  border-radius: var(--radius-lg);
-  margin: var(--spacing-5) 0;
-  padding: var(--spacing-5);
-  background: ${({ $isOver }) =>
-    $isOver ? "var(--primary-light)" : "var(--gray-50)"};
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--gray-600);
-  font-size: var(--font-size-base);
+const Canvas = styled.div<{ $isOver?: boolean }>`
+  min-height: 100%;
+  background: ${({ $isOver }) => ($isOver ? "#f0f7ff" : "#f8f8f8")};
+  border-radius: 8px;
+  padding: 24px;
+  transition: background-color 0.2s;
 `;
 
-type ViewMode = "editor" | "preview" | "code";
-type DeviceMode = "desktop" | "mobile";
-
-interface DroppedItem {
-  type: "component" | "layout";
-  id: string;
-}
-
-const TemplateEditor = () => {
-  const [viewMode, setViewMode] = useState<ViewMode>("editor");
-  const [deviceMode, setDeviceMode] = useState<DeviceMode>("desktop");
-  const [droppedItems, setDroppedItems] = useState<DroppedItem[]>([]);
-
-  const [{ isOver }, drop] = useDrop(() => ({
-    accept: ["component", "layout"],
-    drop: (item: DroppedItem) => {
-      setDroppedItems((prev) => [...prev, item]);
-    },
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-    }),
-  }));
-
-  return (
-    <EditorContainer>
-      <LeftPanel>
-        <ComponentList />
-      </LeftPanel>
-
-      <CenterPanel>
-        <Toolbar>
-          <div>
-            <ToolbarButton
-              $active={viewMode === "editor"}
-              onClick={() => setViewMode("editor")}
-            >
-              에디터
-            </ToolbarButton>
-            <ToolbarButton
-              $active={viewMode === "preview"}
-              onClick={() => setViewMode("preview")}
-            >
-              미리보기
-            </ToolbarButton>
-            <ToolbarButton
-              $active={viewMode === "code"}
-              onClick={() => setViewMode("code")}
-            >
-              코드
-            </ToolbarButton>
-          </div>
-          <div>
-            <ToolbarButton
-              $active={deviceMode === "desktop"}
-              onClick={() => setDeviceMode("desktop")}
-            >
-              데스크톱
-            </ToolbarButton>
-            <ToolbarButton
-              $active={deviceMode === "mobile"}
-              onClick={() => setDeviceMode("mobile")}
-            >
-              모바일
-            </ToolbarButton>
-          </div>
-        </Toolbar>
-        <EditorContent>
-          <DropZone ref={drop} $isOver={isOver}>
-            {droppedItems.length === 0 ? (
-              "여기에 컴포넌트나 레이아웃을 드래그하여 놓으세요"
-            ) : (
-              <div>
-                {droppedItems.map((item, index) => (
-                  <div key={index}>
-                    {item.type}: {item.id}
-                  </div>
-                ))}
-              </div>
-            )}
-          </DropZone>
-        </EditorContent>
-      </CenterPanel>
-
-      <RightPanel>
-        <h3>속성</h3>
-        {/* 선택된 요소의 속성을 여기에 표시 */}
-      </RightPanel>
-    </EditorContainer>
-  );
-};
+const EmptyMessage = styled.div`
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 16px;
+`;
 
 export default TemplateEditor;
