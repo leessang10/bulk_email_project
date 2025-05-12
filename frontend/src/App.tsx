@@ -1,40 +1,63 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import styled from "styled-components";
-import "./App.css";
-import Sidebar from "./common/components/Sidebar";
 import EmailGroupsPage from "./pages/email-groups";
 import SendTaskPage from "./pages/send-task";
 import StatisticsPage from "./pages/statistics";
 import TemplatesPage from "./pages/templates";
 import UnsubscribesPage from "./pages/unsubscribes";
 
-const Layout = styled.div`
+const AppContainer = styled.div`
   display: flex;
+`;
+
+const Sidebar = styled.nav`
+  width: 250px;
+  min-height: 100vh;
+  background-color: #2c3e50;
+  padding: 20px;
+`;
+
+const MainContent = styled.main`
+  flex: 1;
+  background-color: #f5f6fa;
   min-height: 100vh;
 `;
 
-const Content = styled.div`
-  flex: 1;
-  background: #f7f9fb;
+const NavLink = styled.a`
+  display: block;
+  color: white;
+  padding: 10px;
+  margin-bottom: 5px;
+  text-decoration: none;
+  border-radius: 4px;
+
+  &:hover {
+    background-color: #34495e;
+  }
 `;
 
 function App() {
   return (
-    <BrowserRouter>
-      <Layout>
-        <Sidebar />
-        <Content>
+    <Router>
+      <AppContainer>
+        <Sidebar>
+          <NavLink href="/statistics">이메일 발송 통계</NavLink>
+          <NavLink href="/email-groups">이메일 그룹 관리</NavLink>
+          <NavLink href="/templates">이메일 템플릿 관리</NavLink>
+          <NavLink href="/send-task">이메일 발송 작업 관리</NavLink>
+          <NavLink href="/unsubscribes">수신거부 이메일 관리</NavLink>
+        </Sidebar>
+        <MainContent>
           <Routes>
-            <Route path="/" element={<StatisticsPage />} />
             <Route path="/statistics" element={<StatisticsPage />} />
             <Route path="/email-groups" element={<EmailGroupsPage />} />
             <Route path="/templates" element={<TemplatesPage />} />
             <Route path="/send-task" element={<SendTaskPage />} />
             <Route path="/unsubscribes" element={<UnsubscribesPage />} />
           </Routes>
-        </Content>
-      </Layout>
-    </BrowserRouter>
+        </MainContent>
+      </AppContainer>
+    </Router>
   );
 }
 
