@@ -1,6 +1,7 @@
 import { useState } from "react";
 import styled from "styled-components";
 import FileUpload from "../../../components/FileUpload";
+import KeyValueInput from "../../../components/KeyValueInput";
 
 interface EmailGroupFormProps {
   mode: "create" | "edit" | "view";
@@ -10,8 +11,13 @@ interface EmailGroupFormProps {
     emails: string[];
     status: "ready" | "uploading" | "completed" | "error";
     totalEmails: number;
+    mergeFields?: { key: string; value: string }[];
   };
-  onSubmit: (data: { name: string; file?: File }) => void;
+  onSubmit: (data: {
+    name: string;
+    file?: File;
+    mergeFields?: { key: string; value: string }[];
+  }) => void;
   onDelete?: () => void;
   onAddEmails?: (file: File) => void;
 }
@@ -49,42 +55,6 @@ const Input = styled.input`
   &:read-only {
     background-color: #f8fafc;
   }
-`;
-
-const FileUploadArea = styled.div`
-  border: 2px dashed #e2e8f0;
-  border-radius: 8px;
-  padding: 32px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  background-color: #f8fafc;
-
-  &:hover {
-    border-color: #4a90e2;
-    background-color: #f1f5f9;
-  }
-`;
-
-const FileUploadIcon = styled.div`
-  font-size: 24px;
-  color: #64748b;
-  margin-bottom: 12px;
-`;
-
-const FileUploadText = styled.div`
-  color: #1a2230;
-  font-weight: 500;
-  margin-bottom: 4px;
-`;
-
-const FileUploadSubText = styled.div`
-  font-size: 13px;
-  color: #64748b;
-`;
-
-const FileInput = styled.input`
-  display: none;
 `;
 
 const StatusSection = styled.div`
@@ -223,12 +193,17 @@ const EmailGroupForm = ({
   const [file, setFile] = useState<File | null>(null);
   const [emailSearchTerm, setEmailSearchTerm] = useState("");
   const [addEmailFile, setAddEmailFile] = useState<File | null>(null);
+  const [mergeFields, setMergeFields] = useState<
+    { key: string; value: string }[]
+  >(initialData?.mergeFields ?? []);
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
       name,
       file: file ?? undefined,
+      mergeFields: mergeFields.length > 0 ? mergeFields : undefined,
     });
   };
 
@@ -266,7 +241,7 @@ const EmailGroupForm = ({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="그룹명을 입력하세요"
-          readOnly={isViewMode}
+          readOnly={isViewMode && !isEditing}
         />
       </FormGroup>
 
@@ -290,6 +265,26 @@ const EmailGroupForm = ({
                 </StatusItem>
               </StatusGrid>
             </StatusSection>
+          </FormGroup>
+
+          <FormGroup>
+            <Label>메일 머지 필드</Label>
+            {isEditing ? (
+              <KeyValueInput onChange={setMergeFields} maxPairs={5} />
+            ) : (
+              <StatusSection>
+                {mergeFields.length > 0 ? (
+                  mergeFields.map((field, index) => (
+                    <StatusItem key={index}>
+                      <StatusLabel>{field.key}</StatusLabel>
+                      <StatusValue>{field.value}</StatusValue>
+                    </StatusItem>
+                  ))
+                ) : (
+                  <NoResults>등록된 머지 필드가 없습니다.</NoResults>
+                )}
+              </StatusSection>
+            )}
           </FormGroup>
 
           <FormGroup>
@@ -325,25 +320,51 @@ const EmailGroupForm = ({
       )}
 
       {!isViewMode && (
-        <FormGroup>
-          <Label>이메일 목록 엑셀 파일</Label>
-          <FileUpload
-            file={file}
-            onFileChange={handleFileChange}
-            id="file-input"
-          />
-        </FormGroup>
+        <>
+          <FormGroup>
+            <Label>메일 머지 필드</Label>
+            <KeyValueInput onChange={setMergeFields} maxPairs={5} />
+          </FormGroup>
+
+          <FormGroup>
+            <Label>이메일 목록 엑셀 파일</Label>
+            <FileUpload
+              file={file}
+              onFileChange={handleFileChange}
+              id="file-input"
+            />
+          </FormGroup>
+        </>
       )}
 
       <ButtonGroup>
         {mode === "view" ? (
           <>
-            <Button variant="primary" onClick={() => {}}>
-              수정하기
+            <Button
+              variant="primary"
+              onClick={() => {
+                if (isEditing) {
+                  handleSubmit(new Event("submit") as any);
+                }
+                setIsEditing(!isEditing);
+              }}
+            >
+              {isEditing ? "저장하기" : "수정하기"}
             </Button>
             {onDelete && (
               <Button variant="danger" onClick={onDelete}>
                 삭제하기
+              </Button>
+            )}
+            {isEditing && (
+              <Button
+                type="button"
+                onClick={() => {
+                  setIsEditing(false);
+                  setMergeFields(initialData?.mergeFields ?? []);
+                }}
+              >
+                취소
               </Button>
             )}
           </>
