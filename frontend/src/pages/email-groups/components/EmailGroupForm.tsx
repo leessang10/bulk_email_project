@@ -1,7 +1,7 @@
 import { useState } from "react";
 import styled from "styled-components";
-import FileUpload from "../../../components/FileUpload";
-import KeyValueInput from "../../../components/KeyValueInput";
+import FileUpload from "../../../common/components/FileUpload";
+import KeyValueInput from "../../../common/components/KeyValueInput";
 
 interface EmailGroupFormProps {
   mode: "create" | "edit" | "view";
@@ -25,26 +25,26 @@ interface EmailGroupFormProps {
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 2rem;
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.75rem;
 `;
 
 const Label = styled.label`
   font-weight: 600;
   color: #1a2230;
-  font-size: 15px;
+  font-size: 0.9375rem;
 `;
 
 const Input = styled.input`
-  padding: 12px 16px;
+  padding: 0.75rem 1rem;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
   width: 100%;
 
   &:focus {
@@ -59,31 +59,31 @@ const Input = styled.input`
 
 const StatusSection = styled.div`
   background-color: #f8fafc;
-  border-radius: 8px;
-  padding: 20px;
+  border-radius: 0.5rem;
+  padding: 1.25rem;
 `;
 
 const StatusGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 1rem;
 `;
 
 const StatusItem = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.25rem;
 `;
 
 const StatusLabel = styled.span`
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: #64748b;
 `;
 
 const StatusValue = styled.span<{
   $status?: NonNullable<EmailGroupFormProps["initialData"]>["status"];
 }>`
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
   ${({ $status }) => {
     if (!$status) return "color: #1a2230;";
@@ -103,24 +103,24 @@ const StatusValue = styled.span<{
 const EmailSection = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1rem;
 `;
 
 const SearchInput = styled(Input)`
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
 `;
 
 const EmailList = styled.div`
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   overflow: hidden;
 `;
 
 const EmailItem = styled.div`
-  padding: 12px 16px;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid #e2e8f0;
   color: #475569;
-  font-size: 14px;
+  font-size: 0.875rem;
 
   &:last-child {
     border-bottom: none;
@@ -128,23 +128,23 @@ const EmailItem = styled.div`
 `;
 
 const NoResults = styled.div`
-  padding: 24px;
+  padding: 1.5rem;
   text-align: center;
   color: #64748b;
-  font-size: 14px;
+  font-size: 0.875rem;
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: 12px;
-  margin-top: 8px;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
 `;
 
 const Button = styled.button<{ variant?: "primary" | "danger" }>`
-  padding: 12px 20px;
-  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s;
   flex: 1;

@@ -10,9 +10,9 @@ import EmailGroupForm from "./components/EmailGroupForm";
 const StatusBadge = styled.span<{ status: EmailGroup["status"] }>`
   display: inline-flex;
   align-items: center;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
   font-weight: 500;
 
   ${({ status }) => {
@@ -260,9 +260,9 @@ const EmailGroupsPage = () => {
 export default EmailGroupsPage;
 
 const ActionButtons = styled.div`
-  margin-bottom: 20px;
+  margin-bottom: 1.25rem;
   display: flex;
-  gap: 10px;
+  gap: 0.625rem;
 
   @media (max-width: 768px) {
     flex-direction: column;
@@ -270,11 +270,11 @@ const ActionButtons = styled.div`
 `;
 
 const Button = styled.button`
-  padding: 12px 20px;
+  padding: 0.75rem 1.25rem;
   background-color: #4a90e2;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 0.375rem;
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s;

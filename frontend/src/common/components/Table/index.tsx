@@ -3,8 +3,8 @@ import styled from "styled-components";
 
 const TableContainer = styled.div`
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  box-shadow: 0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.1);
 `;
 
 const StyledTable = styled.table`
@@ -13,9 +13,9 @@ const StyledTable = styled.table`
 `;
 
 const Th = styled.th`
-  padding: 12px 16px;
+  padding: 0.75rem 1rem;
   text-align: left;
-  border-bottom: 2px solid #eee;
+  border-bottom: 0.125rem solid #eee;
   color: #666;
   font-weight: 600;
   cursor: pointer;
@@ -26,8 +26,8 @@ const Th = styled.th`
 `;
 
 const Td = styled.td`
-  padding: 12px 16px;
-  border-bottom: 1px solid #eee;
+  padding: 0.75rem 1rem;
+  border-bottom: 0.0625rem solid #eee;
 `;
 
 const Tr = styled.tr`
