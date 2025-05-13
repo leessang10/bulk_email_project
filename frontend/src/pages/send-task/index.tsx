@@ -5,10 +5,10 @@ import { Button } from "../../common/components/Button";
 import PageLayout from "../../common/components/PageLayout";
 import Pagination from "../../common/components/Pagination";
 import SearchFilter from "../../common/components/SearchFilter";
-import Table from "../../common/components/Table";
 import type { Group, Task, Template } from "./api/taskApi";
 import { taskApi } from "./api/taskApi";
 import { CreateTaskModal } from "./components/CreateTaskModal";
+import { SendTaskTable } from "./components/SendTaskTable";
 
 const ActionButtons = styled.div`
   margin-bottom: 20px;
@@ -30,16 +30,6 @@ interface SendTask {
   scheduledAt: string;
   createdAt: string;
 }
-
-const COLUMNS = [
-  { key: "name", label: "작업명" },
-  { key: "status", label: "상태" },
-  { key: "targetGroup", label: "대상 그룹" },
-  { key: "totalEmails", label: "전체 이메일 수" },
-  { key: "sentEmails", label: "발송된 이메일 수" },
-  { key: "scheduledAt", label: "예약 발송 시간" },
-  { key: "createdAt", label: "생성일" },
-];
 
 const SORT_OPTIONS = [
   { value: "createdAt_desc", label: "최근 생성순" },
@@ -198,35 +188,8 @@ const SendTaskPage = () => {
         ]}
       />
 
-      <Table
-        columns={[
-          ...COLUMNS,
-          {
-            key: "actions",
-            label: "작업",
-            render: (task: Task) => (
-              <div style={{ display: "flex", gap: "8px" }}>
-                {task.status === "in_progress" && (
-                  <Button onClick={() => handlePauseTask(task.id)}>
-                    일시중지
-                  </Button>
-                )}
-                {task.status === "paused" && (
-                  <Button onClick={() => handleResumeTask(task.id)}>
-                    재개
-                  </Button>
-                )}
-                <Button
-                  onClick={() => handleDeleteTask(task.id)}
-                  variant="danger"
-                >
-                  삭제
-                </Button>
-              </div>
-            ),
-          },
-        ]}
-        data={tasks}
+      <SendTaskTable
+        tasks={tasks}
         sortKey={sortOption.split("_")[0]}
         sortDirection={sortOption.split("_")[1] as "asc" | "desc"}
         onSort={(key) => {
@@ -234,6 +197,9 @@ const SendTaskPage = () => {
           const newDirection = currentDirection === "asc" ? "desc" : "asc";
           setSortOption(`${key}_${newDirection}`);
         }}
+        onPauseTask={handlePauseTask}
+        onResumeTask={handleResumeTask}
+        onDeleteTask={handleDeleteTask}
       />
 
       <Pagination
