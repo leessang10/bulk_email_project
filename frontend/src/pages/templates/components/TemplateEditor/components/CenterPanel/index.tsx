@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import { useDrop } from "react-dnd";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import {
   deviceModeAtom,
@@ -13,10 +13,11 @@ import {
 } from "../../constants/defaultProperties";
 import type { ComponentType, LayoutType } from "../../types/editor";
 import CodePanel from "./CodePanel";
-import DraggableLayoutBox from "./DraggableLayoutBox";
+import EditorPanel from "./EditorPanel";
 import PreviewPanel from "./PreviewPanel";
 
 const CenterPanel = () => {
+  const navigate = useNavigate();
   const [layouts, setLayouts] = useAtom(layoutsAtom);
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const [deviceMode, setDeviceMode] = useAtom(deviceModeAtom);
@@ -101,20 +102,6 @@ const CenterPanel = () => {
     );
   };
 
-  const [{ isOver }, drop] = useDrop(() => ({
-    accept: ["layout", "layoutBox"],
-    drop: (item: { type: string; layoutType?: LayoutType }, monitor) => {
-      if (!monitor.didDrop()) {
-        if (item.type === "layout" && item.layoutType) {
-          handleLayoutAdd(item.layoutType);
-        }
-      }
-    },
-    collect: (monitor) => ({
-      isOver: monitor.isOver({ shallow: true }),
-    }),
-  }));
-
   const renderContent = () => {
     switch (viewMode) {
       case "preview":
@@ -123,30 +110,18 @@ const CenterPanel = () => {
         return <CodePanel layouts={layouts} />;
       default:
         return (
-          <EditorWrapper $deviceMode={deviceMode}>
-            <Canvas ref={drop} $isOver={isOver}>
-              {layouts.map((layout, index) => (
-                <DraggableLayoutBox
-                  key={layout.id}
-                  layout={layout}
-                  index={index}
-                  isSelected={selectedItemId === layout.id}
-                  onClick={() => setSelectedItemId(layout.id)}
-                  onReorder={handleLayoutsReorder}
-                  onAddComponent={handleAddComponent}
-                  onSelectComponent={setSelectedItemId}
-                  selectedComponentId={selectedItemId}
-                  onUpdateProperties={handleUpdateProperties}
-                  onUpdateContent={handleUpdateContent}
-                />
-              ))}
-              {layouts.length === 0 && (
-                <EmptyMessage>
-                  레이아웃을 이곳에 드래그하여 추가하세요
-                </EmptyMessage>
-              )}
-            </Canvas>
-          </EditorWrapper>
+          <EditorPanel
+            layouts={layouts}
+            deviceMode={deviceMode}
+            selectedItemId={selectedItemId}
+            onLayoutAdd={handleLayoutAdd}
+            onLayoutsReorder={handleLayoutsReorder}
+            onAddComponent={handleAddComponent}
+            onSelectComponent={setSelectedItemId}
+            onUpdateProperties={handleUpdateProperties}
+            onUpdateContent={handleUpdateContent}
+            onSelectLayout={setSelectedItemId}
+          />
         );
     }
   };
@@ -154,6 +129,12 @@ const CenterPanel = () => {
   return (
     <Container>
       <Toolbar>
+        <ToolGroup>
+          <BackButton onClick={() => navigate(-1)}>
+            <span>←</span>
+            <span>뒤로</span>
+          </BackButton>
+        </ToolGroup>
         <ToolGroup>
           <ToolButton
             $active={viewMode === "editor"}
@@ -204,53 +185,58 @@ const Container = styled.div`
 
 const Toolbar = styled.div`
   display: flex;
-  gap: 16px;
-  padding: 8px 16px;
+  gap: 0.75rem;
+  padding: 0.375rem 0.75rem;
   background: white;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 0.0625rem solid #e0e0e0;
+  align-items: center;
 `;
 
 const ToolGroup = styled.div`
   display: flex;
-  gap: 8px;
+  gap: 0.25rem;
+
+  &:not(:first-child) {
+    margin-left: 0.5rem;
+    padding-left: 0.5rem;
+    border-left: 0.0625rem solid #e0e0e0;
+  }
 `;
 
-const ToolButton = styled.button<{ $active: boolean }>`
-  padding: 8px 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  background: ${(props) => (props.$active ? "#e0e0e0" : "white")};
+const BaseButton = styled.button`
+  padding: 0.375rem 0.625rem;
+  border: 0.0625rem solid #e0e0e0;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s;
 
   &:hover {
     background: #f0f0f0;
   }
 `;
 
+const BackButton = styled(BaseButton)`
+  background: white;
+  color: #666;
+
+  span:first-child {
+    font-size: 1rem;
+    line-height: 1;
+  }
+`;
+
+const ToolButton = styled(BaseButton)<{ $active: boolean }>`
+  background: ${(props) => (props.$active ? "#e0e0e0" : "white")};
+  font-weight: ${(props) => (props.$active ? "500" : "normal")};
+`;
+
 const EditorContent = styled.div`
   flex: 1;
   overflow: auto;
-  padding: 24px;
-`;
-
-const EditorWrapper = styled.div<{ $deviceMode: "desktop" | "mobile" }>`
-  max-width: ${(props) => (props.$deviceMode === "desktop" ? "100%" : "375px")};
-  margin: 0 auto;
-`;
-
-const Canvas = styled.div<{ $isOver: boolean }>`
-  min-height: 500px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 24px;
-  border: 2px dashed ${(props) => (props.$isOver ? "#2196f3" : "transparent")};
-`;
-
-const EmptyMessage = styled.div`
-  text-align: center;
-  padding: 40px;
-  color: #666;
 `;
 
 export default CenterPanel;

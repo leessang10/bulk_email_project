@@ -15,18 +15,18 @@ const LeftPanel = () => {
 };
 
 const Container = styled.div`
-  width: 250px;
-  border-right: 1px solid #e0e0e0;
+  width: 15rem;
+  border-right: 0.0625rem solid #e0e0e0;
   background: white;
   display: flex;
   flex-direction: column;
 `;
 
 const PanelTitle = styled.h2`
-  padding: 16px;
+  padding: 0.75rem;
   margin: 0;
-  font-size: 16px;
-  border-bottom: 1px solid #e0e0e0;
+  font-size: 1rem;
+  border-bottom: 0.0625rem solid #e0e0e0;
 `;
 
 const TabContainer = styled.div`

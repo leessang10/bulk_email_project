@@ -31,9 +31,9 @@ const Container = styled.div`
 
 const CodeWrapper = styled.div`
   width: 100%;
-  max-width: ${EDITOR_CONSTANTS.maxWidth};
+  max-width: 50rem;
   background: #1e1e1e;
-  border: 1px solid ${EDITOR_CONSTANTS.borderColor};
+  border: 0.0625rem solid ${EDITOR_CONSTANTS.borderColor};
   border-radius: ${EDITOR_CONSTANTS.borderRadius};
   overflow: hidden;
 `;
@@ -49,7 +49,7 @@ const CodeEditor = styled.textarea`
   border: none;
   padding: ${EDITOR_CONSTANTS.contentPadding};
   font-family: "Consolas", monospace;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
   resize: none;
   outline: none;
@@ -57,8 +57,8 @@ const CodeEditor = styled.textarea`
   tab-size: 2;
 
   &::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
+    width: 0.75rem;
+    height: 0.75rem;
   }
 
   &::-webkit-scrollbar-track {
@@ -67,8 +67,8 @@ const CodeEditor = styled.textarea`
 
   &::-webkit-scrollbar-thumb {
     background: #424242;
-    border-radius: 6px;
-    border: 3px solid #1e1e1e;
+    border-radius: 0.375rem;
+    border: 0.1875rem solid #1e1e1e;
   }
 `;
 

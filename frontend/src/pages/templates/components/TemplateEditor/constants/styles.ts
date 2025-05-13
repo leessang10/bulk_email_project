@@ -1,9 +1,9 @@
 export const EDITOR_CONSTANTS = {
-  maxWidth: "600px", // 에디터와 미리보기의 최대 너비
-  contentPadding: "24px",
-  toolbarHeight: "56px",
-  borderRadius: "8px",
-  mobileWidth: "375px",
+  maxWidth: "37.5rem", // 600px
+  mobileWidth: "23.4375rem", // 375px
+  contentPadding: "1.5rem", // 24px
+  toolbarHeight: "3.5rem", // 56px
+  borderRadius: "0.5rem", // 8px
   backgroundColor: "#f8f8f8",
   borderColor: "#e0e0e0",
 } as const;

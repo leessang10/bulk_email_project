@@ -73,8 +73,8 @@ const RightPanel = () => {
 };
 
 const Container = styled.div`
-  width: 300px;
-  border-left: 1px solid #e0e0e0;
+  width: 18rem;
+  border-left: 0.0625rem solid #e0e0e0;
   background: white;
 `;
 

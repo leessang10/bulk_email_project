@@ -69,29 +69,29 @@ const DraggableComponentItem = ({
 
 const Container = styled.div`
   background: #f5f5f5;
-  padding: 16px;
-  border-right: 1px solid #e0e0e0;
+  padding: 0.75rem;
+  border-right: 0.0625rem solid #e0e0e0;
 `;
 
 const Title = styled.h2`
-  font-size: 18px;
-  margin-bottom: 16px;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
 `;
 
 const ComponentList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
 `;
 
 const ComponentItem = styled.div<{ $isDragging: boolean }>`
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px;
+  gap: 0.5rem;
+  padding: 0.75rem;
   background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
+  border: 0.0625rem solid #e0e0e0;
+  border-radius: 0.25rem;
   cursor: move;
   opacity: ${({ $isDragging }) => ($isDragging ? 0.5 : 1)};
 
@@ -101,7 +101,7 @@ const ComponentItem = styled.div<{ $isDragging: boolean }>`
 `;
 
 const ComponentIcon = styled.span`
-  font-size: 20px;
+  font-size: 1.25rem;
 `;
 
 export default ComponentPanel;

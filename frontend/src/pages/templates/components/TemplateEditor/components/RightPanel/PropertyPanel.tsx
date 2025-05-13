@@ -57,21 +57,21 @@ const Header = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 0.75rem;
+  border-bottom: 0.0625rem solid #e0e0e0;
 `;
 
 const Title = styled.h2`
-  font-size: 16px;
+  font-size: 1rem;
   margin: 0;
 `;
 
 const DeleteButton = styled.button`
-  padding: 6px 12px;
+  padding: 0.375rem 0.75rem;
   background: #f44336;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 0.25rem;
   cursor: pointer;
 
   &:hover {
@@ -81,12 +81,12 @@ const DeleteButton = styled.button`
 
 const Content = styled.div`
   flex: 1;
-  padding: 16px;
+  padding: 0.75rem;
   overflow-y: auto;
 `;
 
 const EmptyMessage = styled.div`
-  padding: 16px;
+  padding: 0.75rem;
   text-align: center;
   color: #666;
 `;
