@@ -85,7 +85,7 @@ const Table = <T extends Record<string, any>>({
           </tr>
         </thead>
         <tbody>
-          {data.map((row, index) => (
+          {(data || []).map((row, index) => (
             <Tr key={index} onClick={() => onRowClick?.(row)}>
               {columns.map((column) => (
                 <Td key={column.key}>

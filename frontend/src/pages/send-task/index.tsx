@@ -1,9 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import styled from "styled-components";
+import { Button } from "../../common/components/Button";
 import PageLayout from "../../common/components/PageLayout";
 import Pagination from "../../common/components/Pagination";
 import SearchFilter from "../../common/components/SearchFilter";
 import Table from "../../common/components/Table";
+import type { Group, Task, Template } from "./api/taskApi";
+import { taskApi } from "./api/taskApi";
+import { CreateTaskModal } from "./components/CreateTaskModal";
 
 const ActionButtons = styled.div`
   margin-bottom: 20px;
@@ -12,25 +17,6 @@ const ActionButtons = styled.div`
 
   @media (max-width: 768px) {
     flex-direction: column;
-  }
-`;
-
-const Button = styled.button`
-  padding: 12px 20px;
-  background-color: #4a90e2;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #357abd;
-  }
-
-  &:active {
-    background-color: #2d6da3;
   }
 `;
 
@@ -44,24 +30,6 @@ interface SendTask {
   scheduledAt: string;
   createdAt: string;
 }
-
-// 임시 데이터
-const MOCK_DATA: SendTask[] = Array.from({ length: 100 }, (_, i) => ({
-  id: i + 1,
-  name: `발송 작업 ${i + 1}`,
-  status: ["pending", "in_progress", "completed", "failed", "paused"][
-    Math.floor(Math.random() * 5)
-  ] as SendTask["status"],
-  targetGroup: `이메일 그룹 ${Math.floor(Math.random() * 10) + 1}`,
-  totalEmails: Math.floor(Math.random() * 10000),
-  sentEmails: Math.floor(Math.random() * 10000),
-  scheduledAt: new Date(
-    Date.now() + Math.random() * 10000000000
-  ).toLocaleDateString(),
-  createdAt: new Date(
-    Date.now() - Math.random() * 10000000000
-  ).toLocaleDateString(),
-}));
 
 const COLUMNS = [
   { key: "name", label: "작업명" },
@@ -95,40 +63,115 @@ const FILTER_OPTIONS = [
   },
 ];
 
-type SortField = keyof SendTask;
-
 const SendTaskPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState("createdAt_desc");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [totalTasks, setTotalTasks] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
 
-  // 실제로는 API 호출로 대체될 로직들
-  const filteredData = MOCK_DATA.filter((item) => {
-    const matchesSearch = item.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || item.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const fetchTemplatesAndGroups = async () => {
+    try {
+      const [templatesResponse, groupsResponse] = await Promise.all([
+        taskApi.getTemplates(),
+        taskApi.getGroups(),
+      ]);
 
-  const sortedData = [...filteredData].sort((a, b) => {
-    const [field, direction] = sortOption.split("_");
-    const sortField = field as SortField;
-    if (direction === "asc") {
-      return a[sortField] > b[sortField] ? 1 : -1;
+      // API 응답이 배열인지 확인하고 설정
+      setTemplates(Array.isArray(templatesResponse) ? templatesResponse : []);
+      setGroups(Array.isArray(groupsResponse) ? groupsResponse : []);
+    } catch (error) {
+      console.error("API Error:", error);
+      toast.error("템플릿과 그룹 목록을 불러오는데 실패했습니다.");
+      // 오류 발생 시 빈 배열로 초기화
+      setTemplates([]);
+      setGroups([]);
     }
-    return a[sortField] < b[sortField] ? 1 : -1;
-  });
+  };
 
-  const paginatedData = sortedData.slice(
-    (currentPage - 1) * perPage,
-    currentPage * perPage
-  );
+  useEffect(() => {
+    fetchTemplatesAndGroups();
+  }, []);
 
-  const totalPages = Math.ceil(filteredData.length / perPage);
+  const fetchTasks = async () => {
+    try {
+      setIsLoading(true);
+      const [field, direction] = sortOption.split("_");
+      const response = await taskApi.getTasks({
+        page: currentPage,
+        perPage,
+        search: searchTerm,
+        status: statusFilter !== "all" ? statusFilter : undefined,
+        sortBy: field,
+        sortDirection: direction as "asc" | "desc",
+      });
+      setTasks(response.data);
+      setTotalTasks(response.total);
+    } catch (error) {
+      toast.error("작업 목록을 불러오는데 실패했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, [currentPage, perPage, searchTerm, sortOption, statusFilter]);
+
+  const handleCreateTasks = async (data: {
+    templateId: number;
+    groupIds: number[];
+    scheduledAt: Date;
+  }) => {
+    try {
+      await taskApi.createTasks(data);
+      toast.success(`${data.groupIds.length}개의 작업이 생성되었습니다.`);
+      setIsCreateModalOpen(false);
+      fetchTasks();
+    } catch (error) {
+      toast.error("작업 생성에 실패했습니다.");
+    }
+  };
+
+  const handleDeleteTask = async (taskId: number) => {
+    if (!window.confirm("정말로 이 작업을 삭제하시겠습니까?")) return;
+
+    try {
+      await taskApi.deleteTask(taskId);
+      toast.success("작업이 삭제되었습니다.");
+      fetchTasks();
+    } catch (error) {
+      toast.error("작업 삭제에 실패했습니다.");
+    }
+  };
+
+  const handlePauseTask = async (taskId: number) => {
+    try {
+      await taskApi.pauseTask(taskId);
+      toast.success("작업이 일시중지되었습니다.");
+      fetchTasks();
+    } catch (error) {
+      toast.error("작업 일시중지에 실패했습니다.");
+    }
+  };
+
+  const handleResumeTask = async (taskId: number) => {
+    try {
+      await taskApi.resumeTask(taskId);
+      toast.success("작업이 재개되었습니다.");
+      fetchTasks();
+    } catch (error) {
+      toast.error("작업 재개에 실패했습니다.");
+    }
+  };
+
+  const totalPages = Math.ceil(totalTasks / perPage);
 
   return (
     <PageLayout
@@ -136,7 +179,9 @@ const SendTaskPage = () => {
       description="이메일 발송 작업을 생성하고 관리할 수 있습니다."
     >
       <ActionButtons>
-        <Button>새 발송 작업 만들기</Button>
+        <Button onClick={() => setIsCreateModalOpen(true)}>
+          새 발송 작업 만들기
+        </Button>
       </ActionButtons>
 
       <SearchFilter
@@ -154,8 +199,34 @@ const SendTaskPage = () => {
       />
 
       <Table
-        columns={COLUMNS}
-        data={paginatedData}
+        columns={[
+          ...COLUMNS,
+          {
+            key: "actions",
+            label: "작업",
+            render: (task: Task) => (
+              <div style={{ display: "flex", gap: "8px" }}>
+                {task.status === "in_progress" && (
+                  <Button onClick={() => handlePauseTask(task.id)}>
+                    일시중지
+                  </Button>
+                )}
+                {task.status === "paused" && (
+                  <Button onClick={() => handleResumeTask(task.id)}>
+                    재개
+                  </Button>
+                )}
+                <Button
+                  onClick={() => handleDeleteTask(task.id)}
+                  variant="danger"
+                >
+                  삭제
+                </Button>
+              </div>
+            ),
+          },
+        ]}
+        data={tasks}
         sortKey={sortOption.split("_")[0]}
         sortDirection={sortOption.split("_")[1] as "asc" | "desc"}
         onSort={(key) => {
@@ -169,6 +240,14 @@ const SendTaskPage = () => {
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
+      />
+
+      <CreateTaskModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateTasks}
+        templates={templates}
+        groups={groups}
       />
     </PageLayout>
   );
