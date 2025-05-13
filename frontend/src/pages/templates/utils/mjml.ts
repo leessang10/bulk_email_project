@@ -2,8 +2,11 @@ import mjml2html from "mjml-browser";
 import {
   DEFAULT_COMPONENT_PROPERTIES,
   DEFAULT_LAYOUT_PROPERTIES,
-} from "../constants/defaultProperties";
-import type { ComponentItem, LayoutItem } from "../types/editor";
+} from "../components/TemplateEditor/constants/defaultProperties";
+import type {
+  ComponentItem,
+  LayoutItem,
+} from "../components/TemplateEditor/types/editor";
 
 const MJML_BODY_WIDTH = 600; // MJML 기본 body width
 

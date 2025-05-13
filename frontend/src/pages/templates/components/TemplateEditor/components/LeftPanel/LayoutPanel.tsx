@@ -1,6 +1,6 @@
 import { useDrag } from "react-dnd";
 import styled from "styled-components";
-import type { LayoutType } from "../types/editor";
+import type { LayoutType } from "../../types/editor";
 
 const LAYOUT_ITEMS: { type: LayoutType; label: string }[] = [
   { type: "1-column", label: "1열 레이아웃" },
@@ -52,7 +52,7 @@ const DraggableLayoutItem = ({
   }));
 
   return (
-    <LayoutItem ref={drag} isDragging={isDragging}>
+    <LayoutItem ref={drag} $isDragging={isDragging}>
       {label}
     </LayoutItem>
   );

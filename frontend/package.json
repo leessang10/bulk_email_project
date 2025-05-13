@@ -13,6 +13,8 @@
     "@types/mjml": "^4.7.4",
     "@types/mjml-react": "^2.0.10",
     "@types/styled-components": "^5.1.34",
+    "axios": "^1.9.0",
+    "jotai": "^2.12.4",
     "mjml": "^4.15.3",
     "mjml-browser": "^4.15.3",
     "mjml-react": "^2.0.8",
@@ -21,6 +23,7 @@
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.0",
+    "react-toastify": "^11.0.5",
     "styled-components": "^6.1.18"
   },
   "devDependencies": {

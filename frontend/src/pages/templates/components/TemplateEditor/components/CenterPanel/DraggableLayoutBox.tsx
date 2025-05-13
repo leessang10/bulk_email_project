@@ -4,9 +4,9 @@ import styled from "styled-components";
 import {
   DEFAULT_COMPONENT_PROPERTIES,
   DEFAULT_LAYOUT_PROPERTIES,
-} from "../constants/defaultProperties";
-import type { ComponentType, LayoutItem } from "../types/editor";
-import { LAYOUT_STYLES } from "../types/editor";
+} from "../../constants/defaultProperties";
+import type { ComponentType, LayoutItem } from "../../types/editor";
+import { LAYOUT_STYLES } from "../../types/editor";
 
 interface DraggableLayoutBoxProps {
   layout: LayoutItem;
@@ -17,8 +17,11 @@ interface DraggableLayoutBoxProps {
   onAddComponent: (layoutId: string, componentType: ComponentType) => void;
   onSelectComponent: (componentId: string) => void;
   selectedComponentId: string | null;
-  onUpdateProperties: (properties: Record<string, any>) => void;
-  onUpdateContent: (content: string) => void;
+  onUpdateProperties: (
+    componentId: string,
+    properties: Record<string, any>
+  ) => void;
+  onUpdateContent: (componentId: string, content: string) => void;
 }
 
 interface DragItem {

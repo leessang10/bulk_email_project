@@ -79,3 +79,22 @@ export const DEFAULT_COMPONENT_PROPERTIES: Record<
     },
   },
 };
+
+export const getDefaultContent = (type: ComponentType): string => {
+  switch (type) {
+    case "text":
+      return "텍스트를 입력하세요";
+    case "button":
+      return "버튼";
+    case "link":
+      return "링크";
+    default:
+      return "";
+  }
+};
+
+export const getDefaultProperties = (
+  type: ComponentType
+): Record<string, any> => {
+  return DEFAULT_COMPONENT_PROPERTIES[type].properties;
+};

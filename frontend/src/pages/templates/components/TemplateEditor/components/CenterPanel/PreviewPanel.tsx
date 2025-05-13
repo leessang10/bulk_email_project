@@ -1,7 +1,7 @@
 import styled from "styled-components";
-import { EDITOR_CONSTANTS } from "../constants/styles";
-import type { LayoutItem } from "../types/editor";
-import { convertMJMLToHTML, convertToMJML } from "../utils/mjml";
+import { convertMJMLToHTML, convertToMJML } from "../../../../utils/mjml";
+import { EDITOR_CONSTANTS } from "../../constants/styles";
+import type { LayoutItem } from "../../types/editor";
 
 interface PreviewPanelProps {
   layouts: LayoutItem[];

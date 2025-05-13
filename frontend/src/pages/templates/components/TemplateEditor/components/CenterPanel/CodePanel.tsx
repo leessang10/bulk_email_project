@@ -1,7 +1,7 @@
 import styled from "styled-components";
-import { EDITOR_CONSTANTS } from "../constants/styles";
-import type { LayoutItem } from "../types/editor";
-import { convertToMJML } from "../utils/mjml";
+import { convertToMJML } from "../../../../utils/mjml";
+import { EDITOR_CONSTANTS } from "../../constants/styles";
+import type { LayoutItem } from "../../types/editor";
 
 interface CodePanelProps {
   layouts: LayoutItem[];

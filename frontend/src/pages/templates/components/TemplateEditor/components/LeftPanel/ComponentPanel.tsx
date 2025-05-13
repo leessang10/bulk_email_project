@@ -1,6 +1,6 @@
 import { useDrag } from "react-dnd";
 import styled from "styled-components";
-import type { ComponentType } from "../types/editor";
+import type { ComponentType } from "../../types/editor";
 
 const COMPONENT_ITEMS: { type: ComponentType; label: string; icon: string }[] =
   [
