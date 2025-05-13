@@ -37,8 +37,8 @@ const DrawerContent = styled.div<{ isOpen: boolean; width: string }>`
 `;
 
 const DrawerHeader = styled.div`
-  padding: 20px 24px;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 1rem 1.25rem;
+  border-bottom: 0.0625rem solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -46,7 +46,7 @@ const DrawerHeader = styled.div`
 
 const DrawerTitle = styled.h2`
   margin: 0;
-  font-size: 20px;
+  font-size: 1.125rem;
   font-weight: 600;
   color: #1a2230;
 `;
@@ -55,9 +55,9 @@ const CloseButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  padding: 8px;
+  padding: 0.375rem;
   color: #64748b;
-  font-size: 20px;
+  font-size: 1.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -69,7 +69,7 @@ const CloseButton = styled.button`
 `;
 
 const DrawerBody = styled.div`
-  padding: 24px;
+  padding: 1.25rem;
   flex: 1;
   overflow-y: auto;
 `;

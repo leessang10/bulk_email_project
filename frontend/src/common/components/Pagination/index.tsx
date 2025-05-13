@@ -71,17 +71,20 @@ const PaginationContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 20px;
-  gap: 8px;
+  margin-top: 1rem;
+  gap: 0.375rem;
 `;
 
 const PageButton = styled.button<{ isActive?: boolean }>`
-  padding: 8px 12px;
-  border: 1px solid ${(props) => (props.isActive ? "#4a90e2" : "#ddd")};
+  padding: 0.375rem 0.625rem;
+  border: 0.0625rem solid ${(props) => (props.isActive ? "#4a90e2" : "#e2e8f0")};
   background-color: ${(props) => (props.isActive ? "#4a90e2" : "white")};
-  color: ${(props) => (props.isActive ? "white" : "#333")};
-  border-radius: 4px;
+  color: ${(props) => (props.isActive ? "white" : "#475569")};
+  border-radius: 0.375rem;
   cursor: pointer;
+  font-size: 0.875rem;
+  min-width: 2rem;
+  transition: all 0.2s;
 
   &:hover {
     background-color: ${(props) => (props.isActive ? "#357abd" : "#f8f9fa")};

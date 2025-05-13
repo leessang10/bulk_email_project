@@ -2,18 +2,19 @@ import React from "react";
 import styled from "styled-components";
 
 const Container = styled.div`
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
   display: flex;
-  gap: 16px;
+  gap: 0.75rem;
   align-items: flex-end;
 `;
 
 const SearchInput = styled.input`
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  width: 300px;
-  font-size: 14px;
+  padding: 0.5rem 0.75rem;
+  border: 0.0625rem solid #e2e8f0;
+  border-radius: 0.375rem;
+  width: 16rem;
+  font-size: 0.875rem;
+  color: #475569;
 
   &:focus {
     outline: none;
@@ -22,11 +23,13 @@ const SearchInput = styled.input`
 `;
 
 const Select = styled.select`
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  min-width: 120px;
+  padding: 0.5rem 0.75rem;
+  border: 0.0625rem solid #e2e8f0;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  min-width: 7rem;
+  color: #475569;
+  background-color: white;
 
   &:focus {
     outline: none;
@@ -36,13 +39,14 @@ const Select = styled.select`
 
 const FilterGroup = styled.div`
   display: flex;
-  gap: 8px;
+  gap: 0.5rem;
   align-items: center;
 `;
 
 const Label = styled.label`
-  font-size: 14px;
-  color: #666;
+  font-size: 0.875rem;
+  color: #64748b;
+  white-space: nowrap;
 `;
 
 interface SearchFilterProps {
