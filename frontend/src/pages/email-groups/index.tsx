@@ -1,31 +1,9 @@
 import { useState } from "react";
 import styled from "styled-components";
+import PageLayout from "../../common/components/PageLayout";
 import Pagination from "../../common/components/Pagination";
 import SearchFilter from "../../common/components/SearchFilter";
 import Table from "../../common/components/Table";
-
-const EmailGroupsContainer = styled.div`
-  padding: 20px;
-`;
-
-const ActionButtons = styled.div`
-  margin-bottom: 20px;
-  display: flex;
-  gap: 10px;
-`;
-
-const Button = styled.button`
-  padding: 8px 16px;
-  background-color: #4a90e2;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #357abd;
-  }
-`;
 
 interface EmailGroup {
   id: number;
@@ -94,9 +72,10 @@ const EmailGroupsPage = () => {
   const totalPages = Math.ceil(filteredData.length / perPage);
 
   return (
-    <EmailGroupsContainer>
-      <h1>이메일 그룹 관리</h1>
-
+    <PageLayout
+      title="이메일 그룹 관리"
+      description="이메일 그룹을 생성하고 관리할 수 있습니다."
+    >
       <ActionButtons>
         <Button>새 그룹 만들기</Button>
         <Button>엑셀 일괄 등록</Button>
@@ -127,8 +106,37 @@ const EmailGroupsPage = () => {
         totalPages={totalPages}
         onPageChange={setCurrentPage}
       />
-    </EmailGroupsContainer>
+    </PageLayout>
   );
 };
 
 export default EmailGroupsPage;
+
+const ActionButtons = styled.div`
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+`;
+
+const Button = styled.button`
+  padding: 12px 20px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #357abd;
+  }
+
+  &:active {
+    background-color: #2d6da3;
+  }
+`;

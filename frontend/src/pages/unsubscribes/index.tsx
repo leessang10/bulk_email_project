@@ -1,5 +1,6 @@
 import { useState } from "react";
 import styled from "styled-components";
+import PageLayout from "../../common/components/PageLayout";
 import Pagination from "../../common/components/Pagination";
 import SearchFilter from "../../common/components/SearchFilter";
 import Table from "../../common/components/Table";
@@ -89,9 +90,10 @@ const UnsubscribesPage = () => {
   const totalPages = Math.ceil(filteredData.length / perPage);
 
   return (
-    <UnsubscribesContainer>
-      <h1>수신거부 이메일 관리</h1>
-
+    <PageLayout
+      title="수신 거부 이메일 관리"
+      description="수신 거부된 이메일 주소와 사유를 관리할 수 있습니다."
+    >
       <SearchFilter
         searchPlaceholder="이메일 주소로 검색"
         onSearchChange={setSearchTerm}
@@ -123,7 +125,7 @@ const UnsubscribesPage = () => {
         totalPages={totalPages}
         onPageChange={setCurrentPage}
       />
-    </UnsubscribesContainer>
+    </PageLayout>
   );
 };
 

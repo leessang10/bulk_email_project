@@ -1,32 +1,6 @@
 import React from "react";
 import styled from "styled-components";
 
-const PaginationContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 20px;
-  gap: 8px;
-`;
-
-const PageButton = styled.button<{ isActive?: boolean }>`
-  padding: 8px 12px;
-  border: 1px solid ${(props) => (props.isActive ? "#4a90e2" : "#ddd")};
-  background-color: ${(props) => (props.isActive ? "#4a90e2" : "white")};
-  color: ${(props) => (props.isActive ? "white" : "#333")};
-  border-radius: 4px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: ${(props) => (props.isActive ? "#357abd" : "#f8f9fa")};
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-`;
-
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
@@ -92,3 +66,29 @@ const Pagination: React.FC<PaginationProps> = ({
 };
 
 export default Pagination;
+
+const PaginationContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  gap: 8px;
+`;
+
+const PageButton = styled.button<{ isActive?: boolean }>`
+  padding: 8px 12px;
+  border: 1px solid ${(props) => (props.isActive ? "#4a90e2" : "#ddd")};
+  background-color: ${(props) => (props.isActive ? "#4a90e2" : "white")};
+  color: ${(props) => (props.isActive ? "white" : "#333")};
+  border-radius: 4px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${(props) => (props.isActive ? "#357abd" : "#f8f9fa")};
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+`;
