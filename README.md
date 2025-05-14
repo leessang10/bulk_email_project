@@ -76,9 +76,6 @@
 - id (PK)
 - email
 - name (nullable)
-- company (nullable)
-- phone (nullable)
-- custom_fields (JSON) ✅ 메일 머지용 확장 데이터
 - created_at
 
 [email_address_group]
@@ -86,12 +83,6 @@
 - id (PK)
 - name
 - created_at
-
-[email_address_group_map]
-
-- id (PK)
-- group_id (FK) → email_address_group
-- email_address_id (FK) → email_address
 
 [email_template]
 
