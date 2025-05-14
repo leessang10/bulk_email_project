@@ -1,3 +1,4 @@
+import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -6,7 +7,14 @@ import { DatabaseModule } from './database/database.module';
 import { EmailAddressGroupsModule } from './modules/email-address-groups/email-address-groups.module';
 
 @Module({
-  imports: [DatabaseModule, ConfigModule, EmailAddressGroupsModule],
+  imports: [
+    DatabaseModule,
+    ConfigModule,
+    EmailAddressGroupsModule,
+    BullModule.forRoot({
+      url: 'redis://localhost:6379',
+    }),
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
