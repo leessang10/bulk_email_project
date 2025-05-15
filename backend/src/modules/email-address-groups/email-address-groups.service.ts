@@ -1,4 +1,4 @@
-import { InjectQueue } from '@nestjs/bull';
+import { InjectQueue } from '@nestjs/bullmq';
 import {
   BadRequestException,
   Injectable,
@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Queue } from 'bull';
+import { Queue } from 'bullmq';
 import * as csv from 'csv-parse/sync';
 import { Repository } from 'typeorm';
 import * as xlsx from 'xlsx';
@@ -32,7 +32,9 @@ export class EmailAddressGroupsService {
     private readonly emailGroupRepository: Repository<EmailAddressGroup>,
     @InjectQueue('INSERT_EMAILS')
     private readonly emailQueue: Queue,
-  ) {}
+  ) {
+    this.logger.log('EmailAddressGroupsService initialized');
+  }
 
   async create(
     createEmailGroupDto: CreateEmailGroupDto,
@@ -152,12 +154,12 @@ export class EmailAddressGroupsService {
     this.logger.log(`이메일 처리 작업을 큐에 추가: ${groupId}`);
     this.logger.log(`이메일 갯수: ${emails.length}`);
 
-    // 이메일 처리 작업을 큐에 추가
-    const job = await this.emailQueue.add('INSERT_EMAILS', {
+    const job = await this.emailQueue.add('process', {
       groupId: Number(groupId),
       emails: emails,
     });
 
+    this.logger.log(`Job added with ID: ${job.id}`);
     return job;
   }
 }
