@@ -1,4 +1,6 @@
-import { BullModule } from '@nestjs/bull';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
+import { BullBoardModule } from '@bull-board/nestjs';
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmailAddress } from '../../database/entities/bulk-email/email-address.entity';
@@ -20,6 +22,10 @@ import { EmailAddressProcessor } from './processors/email-address.processor';
         },
         removeOnComplete: true,
       },
+    }),
+    BullBoardModule.forFeature({
+      name: 'INSERT_EMAILS',
+      adapter: BullMQAdapter,
     }),
   ],
   controllers: [EmailAddressGroupsController],
