@@ -44,15 +44,9 @@ export class ConfigService {
     return {
       bulk_email: {
         type: 'mysql' as const,
-        host:
-          bulkEmailParams.host ||
-          (await this.get('BULK_EMAIL_HOST')) ||
-          'tlooto.coviludadtqs.ap-northeast-2.rds.amazonaws.com',
+        host: bulkEmailParams.host || (await this.get('BULK_EMAIL_HOST')),
         port: 3306,
-        database:
-          bulkEmailParams.database ||
-          (await this.get('BULK_EMAIL_DB')) ||
-          'bulk_email',
+        database: bulkEmailParams.database || (await this.get('BULK_EMAIL_DB')),
         username:
           bulkEmailParams.username || (await this.get('BULK_EMAIL_USER')),
         password:
@@ -63,13 +57,9 @@ export class ConfigService {
       },
       tlooto: {
         type: 'mysql' as const,
-        host:
-          tlootoParams.host ||
-          (await this.get('TLOOTO_HOST')) ||
-          'tlooto.coviludadtqs.ap-northeast-2.rds.amazonaws.com',
+        host: tlootoParams.host || (await this.get('TLOOTO_HOST')),
         port: 3306,
-        database:
-          tlootoParams.database || (await this.get('TLOOTO_DB')) || 'tlooto',
+        database: tlootoParams.database || (await this.get('TLOOTO_DB')),
         username: tlootoParams.username || (await this.get('TLOOTO_USER')),
         password: tlootoParams.password || (await this.get('TLOOTO_PASSWORD')),
         entities: ['dist/**/*.entity{.ts,.js}'],
@@ -78,12 +68,9 @@ export class ConfigService {
       },
       jobs: {
         type: 'mysql' as const,
-        host:
-          jobsParams.host ||
-          (await this.get('JOBS_HOST')) ||
-          'jobs-ac-kr.cluster-coviludadtqs.ap-northeast-2.rds.amazonaws.com',
+        host: jobsParams.host || (await this.get('JOBS_HOST')),
         port: 3306,
-        database: jobsParams.database || (await this.get('JOBS_DB')) || 'jobs',
+        database: jobsParams.database || (await this.get('JOBS_DB')),
         username: jobsParams.username || (await this.get('JOBS_USER')),
         password: jobsParams.password || (await this.get('JOBS_PASSWORD')),
         entities: ['dist/**/*.entity{.ts,.js}'],
