@@ -4,6 +4,8 @@ import { useMemo } from "react";
 import PageLayout from "../../common/components/PageLayout";
 import TableV2 from "../../common/components/TableV2";
 import { createTableAtom } from "../../common/components/TableV2/atoms";
+import type { ColumnDef } from "../../common/components/TableV2/types";
+import type { EmailGroup } from "./api/types";
 import EmailGroupForm from "./components/EmailGroupForm";
 import { COLUMNS, SORT_OPTIONS } from "./constants";
 import { useEmailGroups } from "./hooks/useEmailGroups";
@@ -33,7 +35,7 @@ const EmailGroupsPage = () => {
     >
       <TableV2
         tableId="email-groups"
-        columns={COLUMNS}
+        columns={COLUMNS as ColumnDef<EmailGroup>[]}
         data={data}
         totalItems={totalItems}
         sortOptions={SORT_OPTIONS}

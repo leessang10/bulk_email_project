@@ -5,7 +5,14 @@ import { createTableAtom } from "./atoms";
 import Drawer from "./Drawer";
 import Pagination from "./Pagination";
 import SearchFilter from "./SearchFilter";
-import type { ColumnDef, TableParams } from "./types";
+import type {
+  ColumnDef,
+  FilterDef,
+  PaginationInfo,
+  SortOption,
+  TableAction,
+  TableParams,
+} from "./types";
 
 const TableContainer = styled.div`
   background: white;
@@ -33,10 +40,11 @@ const Th = styled.th`
   }
 `;
 
-const Td = styled.td`
+const Td = styled.td<{ $align?: "left" | "center" | "right" }>`
   padding: 0.625rem 0.75rem;
   border-bottom: 0.0625rem solid #eee;
   color: #475569;
+  text-align: ${(props) => props.$align || "left"};
 `;
 
 const Tr = styled.tr`
@@ -57,21 +65,14 @@ export interface TableV2Props<T> {
   columns: ColumnDef<T>[];
   data: T[];
   totalItems: number;
-  sortOptions: { value: string; label: string }[];
-  filters?: {
-    name: string;
-    label: string;
-    options: { value: string; label: string }[];
-  }[];
-  actions?: Array<{
-    label: string;
-    onClick: () => void;
-    variant?: "primary" | "secondary" | "danger";
-  }>;
+  sortOptions: SortOption[];
+  filters?: FilterDef[];
+  actions?: TableAction[];
   onDataRequest: (params: TableParams) => void;
   onRowClick?: (row: T) => void;
   DetailDrawerContent?: React.FC<{ data: T; onClose?: () => void }>;
   CreateDrawerContent?: React.FC<{ onClose?: () => void }>;
+  paginationInfo?: PaginationInfo;
 }
 
 const TableV2 = <T extends Record<string, any>>({
@@ -86,6 +87,7 @@ const TableV2 = <T extends Record<string, any>>({
   onRowClick,
   DetailDrawerContent,
   CreateDrawerContent,
+  paginationInfo,
 }: TableV2Props<T>) => {
   const atoms = React.useMemo(() => createTableAtom(tableId), [tableId]);
 
@@ -117,15 +119,20 @@ const TableV2 = <T extends Record<string, any>>({
     searchQuery,
   ]);
 
-  const handleSort = (key: string) => {
+  const handleSort = (key: keyof T) => {
+    if (!columns.find((col) => col.key === key)?.sortable) return;
+
     setSort({
-      sortKey: key,
+      sortKey: key as string,
       sortDirection:
         sort.sortKey === key && sort.sortDirection === "asc" ? "desc" : "asc",
     });
   };
 
-  const handleFilterChange = (name: string, value: string) => {
+  const handleFilterChange = (
+    name: string,
+    value: string | number | boolean
+  ) => {
     setFilterValues({ ...filterValues, [name]: value });
   };
 
@@ -154,7 +161,9 @@ const TableV2 = <T extends Record<string, any>>({
                 key={index}
                 onClick={action.onClick}
                 $variant={action.variant}
+                disabled={action.disabled}
               >
+                {action.icon && <span className="icon">{action.icon}</span>}
                 {action.label}
               </ActionButton>
             ))}
@@ -167,9 +176,16 @@ const TableV2 = <T extends Record<string, any>>({
           <thead>
             <tr>
               {columns.map((column) => (
-                <Th key={column.key} onClick={() => handleSort(column.key)}>
+                <Th
+                  key={String(column.key)}
+                  onClick={() => handleSort(column.key)}
+                  style={{
+                    width: column.width,
+                    cursor: column.sortable ? "pointer" : "default",
+                  }}
+                >
                   {column.label}
-                  {sort.sortKey === column.key && (
+                  {column.sortable && sort.sortKey === column.key && (
                     <span>{sort.sortDirection === "asc" ? " ↑" : " ↓"}</span>
                   )}
                 </Th>
@@ -186,9 +202,9 @@ const TableV2 = <T extends Record<string, any>>({
                 }}
               >
                 {columns.map((column) => (
-                  <Td key={column.key}>
+                  <Td key={String(column.key)} $align={column.align}>
                     {column.render
-                      ? column.render(row[column.key])
+                      ? column.render(row[column.key], row)
                       : row[column.key]}
                   </Td>
                 ))}
@@ -199,8 +215,10 @@ const TableV2 = <T extends Record<string, any>>({
       </TableContainer>
 
       <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
+        currentPage={paginationInfo?.currentPage || currentPage}
+        totalPages={paginationInfo?.totalPages || totalPages}
+        totalItems={paginationInfo?.totalItems || totalItems}
+        perPage={paginationInfo?.perPage || perPage}
         onPageChange={setCurrentPage}
       />
 
@@ -248,14 +266,23 @@ const ActionButtons = styled.div`
 
 const ActionButton = styled.button<{
   $variant?: "primary" | "secondary" | "danger";
+  disabled?: boolean;
 }>`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.5rem 1rem;
+  border: none;
   border-radius: 0.375rem;
   font-size: 0.875rem;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
+  opacity: ${(props) => (props.disabled ? 0.5 : 1)};
+
+  .icon {
+    display: flex;
+    align-items: center;
+  }
 
   ${({ $variant }) => {
     switch ($variant) {

@@ -1,15 +1,16 @@
 import React from "react";
 import styled from "styled-components";
+import type { PaginationInfo } from "../types";
 
-interface PaginationProps {
-  currentPage: number;
-  totalPages: number;
+export interface PaginationProps extends PaginationInfo {
   onPageChange: (page: number) => void;
 }
 
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
+  totalItems,
+  perPage,
   onPageChange,
 }) => {
   const renderPageNumbers = () => {
@@ -39,28 +40,37 @@ const Pagination: React.FC<PaginationProps> = ({
 
   return (
     <PaginationContainer>
-      <PageButton onClick={() => onPageChange(1)} disabled={currentPage === 1}>
-        {"<<"}
-      </PageButton>
-      <PageButton
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-      >
-        {"<"}
-      </PageButton>
-      {renderPageNumbers()}
-      <PageButton
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-      >
-        {">"}
-      </PageButton>
-      <PageButton
-        onClick={() => onPageChange(totalPages)}
-        disabled={currentPage === totalPages}
-      >
-        {">>"}
-      </PageButton>
+      <PageInfo>
+        총 {totalItems}개 중 {(currentPage - 1) * perPage + 1}-
+        {Math.min(currentPage * perPage, totalItems)}개
+      </PageInfo>
+      <PageButtonContainer>
+        <PageButton
+          onClick={() => onPageChange(1)}
+          disabled={currentPage === 1}
+        >
+          {"<<"}
+        </PageButton>
+        <PageButton
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          {"<"}
+        </PageButton>
+        {renderPageNumbers()}
+        <PageButton
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          {">"}
+        </PageButton>
+        <PageButton
+          onClick={() => onPageChange(totalPages)}
+          disabled={currentPage === totalPages}
+        >
+          {">>"}
+        </PageButton>
+      </PageButtonContainer>
     </PaginationContainer>
   );
 };
@@ -69,10 +79,20 @@ export default Pagination;
 
 const PaginationContainer = styled.div`
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   margin-top: 1rem;
+  padding: 0 1rem;
+`;
+
+const PageButtonContainer = styled.div`
+  display: flex;
   gap: 0.375rem;
+`;
+
+const PageInfo = styled.div`
+  font-size: 0.875rem;
+  color: #64748b;
 `;
 
 const PageButton = styled.button<{ isActive?: boolean }>`

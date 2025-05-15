@@ -1,11 +1,13 @@
 import React from "react";
 import styled from "styled-components";
+import type { FilterDef, SortOption } from "../types";
 
 const Container = styled.div`
   margin-bottom: 1rem;
   display: flex;
   gap: 0.75rem;
   align-items: flex-end;
+  flex-wrap: wrap;
 `;
 
 const SearchInput = styled.input`
@@ -49,19 +51,16 @@ const Label = styled.label`
   white-space: nowrap;
 `;
 
-interface SearchFilterProps {
+export interface SearchFilterProps {
   searchPlaceholder?: string;
   onSearchChange: (value: string) => void;
   onPerPageChange: (value: number) => void;
   onSortChange: (value: string) => void;
-  sortOptions: { value: string; label: string }[];
+  sortOptions: SortOption[];
   perPageOptions?: number[];
-  filters?: {
-    name: string;
-    label: string;
-    options: { value: string; label: string }[];
-    onChange: (value: string) => void;
-  }[];
+  filters?: (FilterDef & {
+    onChange: (value: string | number | boolean) => void;
+  })[];
 }
 
 const SearchFilter: React.FC<SearchFilterProps> = ({
@@ -84,7 +83,19 @@ const SearchFilter: React.FC<SearchFilterProps> = ({
       {filters.map((filter) => (
         <FilterGroup key={filter.name}>
           <Label>{filter.label}</Label>
-          <Select onChange={(e) => filter.onChange(e.target.value)}>
+          <Select
+            onChange={(e) => {
+              const value = e.target.value;
+              // 값 타입 변환 처리
+              const convertedValue = (() => {
+                if (value === "true") return true;
+                if (value === "false") return false;
+                const num = Number(value);
+                return isNaN(num) ? value : num;
+              })();
+              filter.onChange(convertedValue);
+            }}
+          >
             {filter.options.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

@@ -1,18 +1,20 @@
 import { atom } from "jotai";
-import type { TableState } from "./types";
+import type { SortDirection, TableState } from "./types";
 
 const tableAtoms = new Map<
   string,
   ReturnType<typeof createTableAtomInstance>
 >();
 
-const createTableAtomInstance = (tableId: string) => {
-  const initialState: TableState = {
+const createTableAtomInstance = <T extends Record<string, any>>(
+  tableId: string
+) => {
+  const initialState: TableState<T> = {
     currentPage: 1,
     perPage: 10,
     sort: {
-      sortKey: "createdAt",
-      sortDirection: "desc",
+      sortKey: "" as keyof T | "",
+      sortDirection: "desc" as SortDirection,
     },
     filters: {},
     searchQuery: "",
@@ -34,7 +36,7 @@ const createTableAtomInstance = (tableId: string) => {
   );
   const sortAtom = atom(
     (get) => get(tableStateAtom).sort,
-    (get, set, sort: { sortKey: string; sortDirection: "asc" | "desc" }) =>
+    (get, set, sort: { sortKey: keyof T | ""; sortDirection: SortDirection }) =>
       set(tableStateAtom, { ...get(tableStateAtom), sort })
   );
   const searchQueryAtom = atom(
@@ -44,7 +46,7 @@ const createTableAtomInstance = (tableId: string) => {
   );
   const filtersAtom = atom(
     (get) => get(tableStateAtom).filters,
-    (get, set, filters: Record<string, string>) =>
+    (get, set, filters: Record<string, string | number | boolean>) =>
       set(tableStateAtom, { ...get(tableStateAtom), filters })
   );
   const detailDrawerAtom = atom(
@@ -52,7 +54,7 @@ const createTableAtomInstance = (tableId: string) => {
       isOpen: get(tableStateAtom).isDetailDrawerOpen,
       selectedRow: get(tableStateAtom).selectedRow,
     }),
-    (get, set, value: { isOpen: boolean; selectedRow: any }) =>
+    (get, set, value: { isOpen: boolean; selectedRow: T | null }) =>
       set(tableStateAtom, {
         ...get(tableStateAtom),
         isDetailDrawerOpen: value.isOpen,
@@ -80,9 +82,11 @@ const createTableAtomInstance = (tableId: string) => {
   };
 };
 
-export const createTableAtom = (tableId: string) => {
+export const createTableAtom = <T extends Record<string, any>>(
+  tableId: string
+) => {
   if (!tableAtoms.has(tableId)) {
-    tableAtoms.set(tableId, createTableAtomInstance(tableId));
+    tableAtoms.set(tableId, createTableAtomInstance<T>(tableId));
   }
   return tableAtoms.get(tableId)!;
 };
