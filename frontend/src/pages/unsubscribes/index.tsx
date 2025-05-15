@@ -1,9 +1,9 @@
 import { useState } from "react";
 import styled from "styled-components";
 import PageLayout from "../../common/components/PageLayout";
-import Pagination from "../../common/components/Pagination";
-import SearchFilter from "../../common/components/SearchFilter";
 import Table from "../../common/components/Table";
+import Pagination from "../../common/components/TableV2/Pagination";
+import SearchFilter from "../../common/components/TableV2/SearchFilter";
 
 const UnsubscribesContainer = styled.div`
   padding: 20px;

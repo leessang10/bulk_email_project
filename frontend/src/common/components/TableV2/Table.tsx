@@ -1,10 +1,10 @@
 import { useAtom } from "jotai";
 import React from "react";
 import styled from "styled-components";
-import Drawer from "../Drawer";
-import Pagination from "../Pagination";
-import SearchFilter from "../SearchFilter";
 import { createTableAtom } from "./atoms";
+import Drawer from "./Drawer";
+import Pagination from "./Pagination";
+import SearchFilter from "./SearchFilter";
 
 const TableContainer = styled.div`
   background: white;
