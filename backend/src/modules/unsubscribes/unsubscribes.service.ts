@@ -7,7 +7,7 @@ import { FindUnsubscribeDto } from './dto/unsubscribe.dto';
 @Injectable()
 export class UnsubscribesService {
   constructor(
-    @InjectRepository(Unsubscribe)
+    @InjectRepository(Unsubscribe, 'bulk_email')
     private readonly unsubscribeRepository: Repository<Unsubscribe>,
   ) {}
 
@@ -15,7 +15,7 @@ export class UnsubscribesService {
     const {
       email,
       page = 1,
-      limit = 10,
+      pageSize = 10,
       sortBy = 'createdAt',
       sortOrder = 'DESC',
     } = findUnsubscribeDto;
@@ -31,16 +31,16 @@ export class UnsubscribesService {
 
     const [items, total] = await queryBuilder
       .orderBy(`unsubscribe.${sortBy}`, sortOrder)
-      .skip((page - 1) * limit)
-      .take(limit)
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
       .getManyAndCount();
 
     return {
       items,
       total,
       page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
     };
   }
 }

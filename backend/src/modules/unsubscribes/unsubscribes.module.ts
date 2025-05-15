@@ -5,7 +5,7 @@ import { UnsubscribesController } from './unsubscribes.controller';
 import { UnsubscribesService } from './unsubscribes.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Unsubscribe])],
+  imports: [TypeOrmModule.forFeature([Unsubscribe], 'bulk_email')],
   controllers: [UnsubscribesController],
   providers: [UnsubscribesService],
 })

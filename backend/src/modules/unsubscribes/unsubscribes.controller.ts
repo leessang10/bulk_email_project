@@ -7,7 +7,7 @@ import {
 import { UnsubscribesService } from './unsubscribes.service';
 
 @ApiTags('수신거부')
-@Controller('unsubscribe')
+@Controller('api/v1/unsubscribes')
 export class UnsubscribesController {
   constructor(private readonly unsubscribeService: UnsubscribesService) {}
 

@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsEmail,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 
 export class CreateUnsubscribeDto {
   @ApiProperty({ description: '이메일 주소' })
@@ -33,22 +41,59 @@ export class FindUnsubscribeDto {
   email?: string;
 
   @ApiProperty({ description: '페이지', required: false, default: 1 })
-  page?: number;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  page?: number = 1;
 
   @ApiProperty({
     description: '페이지당 항목 수',
     required: false,
     default: 10,
   })
-  limit?: number;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  pageSize?: number = 10;
 
   @ApiProperty({
     description: '정렬 기준',
     required: false,
     default: 'createdAt',
+    enum: ['email', 'createdAt'],
   })
-  sortBy?: string;
+  @IsString()
+  @IsIn(['email', 'createdAt'])
+  @IsOptional()
+  sortBy?: string = 'createdAt';
 
-  @ApiProperty({ description: '정렬 방향', required: false, default: 'DESC' })
-  sortOrder?: 'ASC' | 'DESC';
+  @ApiProperty({
+    description: '정렬 방향',
+    required: false,
+    default: 'DESC',
+    enum: ['ASC', 'DESC'],
+  })
+  @IsString()
+  @IsIn(['ASC', 'DESC'])
+  @IsOptional()
+  sortOrder?: 'ASC' | 'DESC' = 'DESC';
+}
+
+export class UnsubscribeListResponseDto {
+  @ApiProperty({ description: '수신거부 목록' })
+  items: UnsubscribeResponseDto[];
+
+  @ApiProperty({ description: '전체 항목 수' })
+  total: number;
+
+  @ApiProperty({ description: '현재 페이지' })
+  page: number;
+
+  @ApiProperty({ description: '페이지당 항목 수' })
+  pageSize: number;
+
+  @ApiProperty({ description: '전체 페이지 수' })
+  totalPages: number;
 }
