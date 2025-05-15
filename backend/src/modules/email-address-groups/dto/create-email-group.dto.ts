@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class CreateEmailGroupDto {
   @ApiProperty({ description: '이메일 그룹 이름' })
@@ -10,13 +10,4 @@ export class CreateEmailGroupDto {
   @IsString()
   @IsOptional()
   description?: string;
-
-  @ApiProperty({
-    description: '머지 필드 목록',
-    required: false,
-    type: [String],
-  })
-  @IsArray()
-  @IsOptional()
-  mergeFields?: string[];
 }

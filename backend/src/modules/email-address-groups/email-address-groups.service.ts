@@ -1,11 +1,16 @@
 import { InjectQueue } from '@nestjs/bull';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
 import * as csv from 'csv-parse/sync';
 import { Like, Repository } from 'typeorm';
 import * as xlsx from 'xlsx';
 import { PaginationDto } from '../../common/dto/pagination.dto';
+import { EmailGroupStatus } from '../../common/enums/email-group.enum';
 import { EmailAddressGroup } from '../../database/entities/bulk-email/email-group.entity';
 import { CreateEmailGroupDto } from './dto/create-email-group.dto';
 import { UpdateEmailGroupDto } from './dto/update-email-group.dto';
@@ -41,7 +46,7 @@ export class EmailAddressGroupsService {
       where: paginationDto.search
         ? [
             { name: Like(`%${paginationDto.search}%`) },
-            { region: Like(`%${paginationDto.search}%`) },
+            { region: Like(`%${paginationDto.search}%`) as any },
           ]
         : {},
     });
@@ -82,12 +87,7 @@ export class EmailAddressGroupsService {
   }
 
   private async processEmailFile(groupId: number, file: Express.Multer.File) {
-    let emails: {
-      email: string;
-      name?: string;
-      addressType?: 'PERSONAL' | 'WORK' | 'OTHER';
-      memo?: string;
-    }[] = [];
+    let emails: string[] = [];
 
     if (file.mimetype === 'text/csv') {
       const content = file.buffer.toString('utf-8');
@@ -96,53 +96,27 @@ export class EmailAddressGroupsService {
         skip_empty_lines: true,
       });
 
-      emails = records.map((record) => {
-        const { email, name, address_type, memo, ...rest } = record;
-        return {
-          email,
-          name: name || undefined,
-          addressType: ['PERSONAL', 'WORK', 'OTHER'].includes(
-            address_type?.toUpperCase(),
-          )
-            ? address_type.toUpperCase()
-            : undefined,
-          memo: memo || undefined,
-        };
-      });
-    } else {
+      emails = records.map((record: { email: string }) => record.email);
+    } else if (
+      file.mimetype ===
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ) {
       const workbook = xlsx.read(file.buffer, { type: 'buffer' });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const records = xlsx.utils.sheet_to_json(worksheet);
 
-      emails = records.map((record) => {
-        const { email, name, address_type, memo } = record as any;
-        return {
-          email,
-          name: name || undefined,
-          addressType: ['PERSONAL', 'WORK', 'OTHER'].includes(
-            address_type?.toUpperCase(),
-          )
-            ? address_type.toUpperCase()
-            : undefined,
-          memo: memo || undefined,
-        };
-      });
+      emails = records.map((record: { email: string }) => record.email);
+    } else {
+      throw new BadRequestException('지원하지 않는 파일 형식입니다.');
     }
 
+    // 상태를 WAITING으로 업데이트
+    await this.emailGroupRepository.update(groupId, {
+      status: EmailGroupStatus.WAITING,
+    });
+
     // 이메일 처리 작업을 큐에 추가
-    const job = await this.emailQueue.add(
-      {
-        groupId,
-        emails,
-      },
-      {
-        attempts: 3,
-        backoff: {
-          type: 'exponential',
-          delay: 1000,
-        },
-      },
-    );
+    const job = await this.emailQueue.add({ groupId, emails });
 
     return job;
   }

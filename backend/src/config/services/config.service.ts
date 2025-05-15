@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { AwsParamStoreService } from './aws-param-store.service';
 import { DotEnvService } from './dot-env.service';
 
@@ -52,8 +53,9 @@ export class ConfigService {
         password:
           bulkEmailParams.password || (await this.get('BULK_EMAIL_PASSWORD')),
         entities: ['dist/**/*.entity{.ts,.js}'],
-        synchronize: false,
+        synchronize: true,
         logging: process.env.NODE_ENV !== 'production',
+        namingStrategy: new SnakeNamingStrategy(),
       },
       tlooto: {
         type: 'mysql' as const,
@@ -65,6 +67,7 @@ export class ConfigService {
         entities: ['dist/**/*.entity{.ts,.js}'],
         synchronize: false,
         logging: process.env.NODE_ENV !== 'production',
+        namingStrategy: new SnakeNamingStrategy(),
       },
       jobs: {
         type: 'mysql' as const,
@@ -76,6 +79,8 @@ export class ConfigService {
         entities: ['dist/**/*.entity{.ts,.js}'],
         synchronize: false,
         logging: process.env.NODE_ENV !== 'production',
+        entityPrefix: 'tb_',
+        namingStrategy: new SnakeNamingStrategy(),
       },
     };
   }

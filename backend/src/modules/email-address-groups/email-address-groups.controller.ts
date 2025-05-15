@@ -43,11 +43,6 @@ export class EmailAddressGroupsController {
       properties: {
         name: { type: 'string', description: '이메일 그룹 이름' },
         description: { type: 'string', description: '이메일 그룹 설명' },
-        mergeFields: {
-          type: 'array',
-          items: { type: 'string' },
-          description: '머지 필드 목록',
-        },
         file: {
           type: 'string',
           format: 'binary',

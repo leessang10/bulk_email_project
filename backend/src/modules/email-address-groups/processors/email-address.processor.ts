@@ -3,6 +3,8 @@ import { Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Job } from 'bull';
 import { In, Repository } from 'typeorm';
+import { EmailAddressType } from '../../../common/enums/email-address.enum';
+import { EmailGroupStatus } from '../../../common/enums/email-group.enum';
 import { validateEmail } from '../../../common/utils/email-validator';
 import { EmailAddress } from '../../../database/entities/bulk-email/email-address.entity';
 import { EmailAddressGroup } from '../../../database/entities/bulk-email/email-group.entity';
@@ -10,7 +12,7 @@ import { EmailAddressGroup } from '../../../database/entities/bulk-email/email-g
 interface EmailData {
   email: string;
   name?: string;
-  addressType?: 'PERSONAL' | 'WORK' | 'OTHER';
+  addressType?: EmailAddressType;
   memo?: string;
 }
 
@@ -37,6 +39,11 @@ export class EmailAddressProcessor {
     this.logger.log(`Processing ${emails.length} emails for group ${groupId}`);
 
     try {
+      // 상태를 PROCESSING으로 업데이트
+      await this.emailGroupRepository.update(groupId, {
+        status: EmailGroupStatus.PROCESSING,
+      });
+
       // 1. 이메일 유효성 검증
       const validEmails = emails.filter(({ email }) => validateEmail(email));
 
@@ -67,7 +74,7 @@ export class EmailAddressProcessor {
               addressGroupId: groupId,
               email,
               name: name || '',
-              addressType: addressType || 'normal',
+              addressType: addressType || EmailAddressType.NORMAL,
               memo: memo || '',
               isSubscribed: true,
             })),
@@ -84,6 +91,7 @@ export class EmailAddressProcessor {
         .update(EmailAddressGroup)
         .set({
           addressCount: () => 'address_count + :count',
+          status: EmailGroupStatus.COMPLETED,
         })
         .where('id = :groupId', { groupId })
         .setParameter('count', newEmails.length)
@@ -100,6 +108,10 @@ export class EmailAddressProcessor {
         invalidEmails: emails.length - validEmails.length,
       };
     } catch (error) {
+      // 에러 발생 시 상태를 FAILED로 업데이트
+      await this.emailGroupRepository.update(groupId, {
+        status: EmailGroupStatus.FAILED,
+      });
       this.logger.error(`Error processing emails for group ${groupId}:`, error);
       throw error;
     }

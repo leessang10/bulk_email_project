@@ -1,18 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+  EmailGroupRegion,
+  EmailGroupStatus,
+} from '../../../common/enums/email-group.enum';
+import { BaseEntity } from '../base.entity';
 
 @Entity({
   comment: '이메일 그룹',
   name: 'tb_email_address_group',
   database: 'bulk_email',
 })
-export class EmailAddressGroup {
+export class EmailAddressGroup extends BaseEntity {
   @ApiProperty({ description: '이메일 그룹 ID' })
   @PrimaryGeneratedColumn()
   id: number;
@@ -21,17 +20,21 @@ export class EmailAddressGroup {
   @Column({ length: 100 })
   name: string;
 
-  @ApiProperty({ description: '지역' })
-  @Column({ length: 50 })
-  region: string;
-
-  @ApiProperty({ description: '상태', enum: ['ACTIVE', 'INACTIVE', 'DELETED'] })
+  @ApiProperty({ description: '지역', enum: EmailGroupRegion })
   @Column({
     type: 'enum',
-    enum: ['ACTIVE', 'INACTIVE', 'DELETED'],
-    default: 'ACTIVE',
+    enum: EmailGroupRegion,
+    default: EmailGroupRegion.DOMESTIC,
   })
-  status: string;
+  region: EmailGroupRegion;
+
+  @ApiProperty({ description: '상태', enum: EmailGroupStatus })
+  @Column({
+    type: 'enum',
+    enum: EmailGroupStatus,
+    default: EmailGroupStatus.PENDING,
+  })
+  status: EmailGroupStatus;
 
   @ApiProperty({ description: '이메일 주소 수' })
   @Column({ name: 'address_count', default: 0 })
@@ -44,12 +47,4 @@ export class EmailAddressGroup {
     nullable: true,
   })
   mailMergeData: Record<string, any>;
-
-  @ApiProperty({ description: '생성일시' })
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
-
-  @ApiProperty({ description: '수정일시' })
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
 }

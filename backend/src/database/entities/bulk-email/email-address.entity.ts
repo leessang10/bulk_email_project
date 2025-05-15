@@ -1,14 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   Column,
-  CreateDateColumn,
   Entity,
   Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
+import { EmailAddressType } from '../../../common/enums/email-address.enum';
+import { BaseEntity } from '../base.entity';
 import { EmailAddressGroup } from './email-group.entity';
 
 @Entity({
@@ -17,22 +17,21 @@ import { EmailAddressGroup } from './email-group.entity';
   database: 'bulk_email',
 })
 @Index(['addressGroupId', 'email'], { unique: true })
-export class EmailAddress {
+export class EmailAddress extends BaseEntity {
   @ApiProperty({ description: '이메일 주소 ID' })
   @PrimaryGeneratedColumn()
   id: number;
 
   @ApiProperty({
     description: '주소 유형',
-    enum: ['normal', 'test'],
+    enum: EmailAddressType,
   })
   @Column({
-    name: 'address_type',
     type: 'enum',
-    enum: ['normal', 'test'],
-    default: 'normal',
+    enum: EmailAddressType,
+    default: EmailAddressType.NORMAL,
   })
-  addressType: string;
+  addressType: EmailAddressType;
 
   @ApiProperty({ description: '이메일 주소' })
   @Column({ length: 255 })
@@ -53,14 +52,6 @@ export class EmailAddress {
   @ApiProperty({ description: '메모' })
   @Column({ type: 'text', nullable: true })
   memo: string;
-
-  @ApiProperty({ description: '생성일시' })
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
-
-  @ApiProperty({ description: '수정일시' })
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
 
   @ApiProperty({ description: '이메일 그룹 ID' })
   @Column({ name: 'address_group_id' })
