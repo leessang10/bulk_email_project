@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import styled from "styled-components";
 import EmailGroupsPage from "./pages/email-groups";
@@ -36,28 +37,39 @@ const NavLink = styled.a`
   }
 `;
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
 function App() {
   return (
-    <Router>
-      <AppContainer>
-        <Sidebar>
-          <NavLink href="/statistics">이메일 발송 통계</NavLink>
-          <NavLink href="/email-groups">이메일 그룹 관리</NavLink>
-          <NavLink href="/templates">이메일 템플릿 관리</NavLink>
-          <NavLink href="/send-task">이메일 발송 작업 관리</NavLink>
-          <NavLink href="/unsubscribes">수신거부 이메일 관리</NavLink>
-        </Sidebar>
-        <MainContent>
-          <Routes>
-            <Route path="/statistics" element={<StatisticsPage />} />
-            <Route path="/email-groups" element={<EmailGroupsPage />} />
-            <Route path="/templates" element={<TemplatesPage />} />
-            <Route path="/send-task" element={<SendTaskPage />} />
-            <Route path="/unsubscribes" element={<UnsubscribesPage />} />
-          </Routes>
-        </MainContent>
-      </AppContainer>
-    </Router>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <AppContainer>
+          <Sidebar>
+            <NavLink href="/statistics">이메일 발송 통계</NavLink>
+            <NavLink href="/email-groups">이메일 그룹 관리</NavLink>
+            <NavLink href="/templates">이메일 템플릿 관리</NavLink>
+            <NavLink href="/send-task">이메일 발송 작업 관리</NavLink>
+            <NavLink href="/unsubscribes">수신거부 이메일 관리</NavLink>
+          </Sidebar>
+          <MainContent>
+            <Routes>
+              <Route path="/statistics" element={<StatisticsPage />} />
+              <Route path="/email-groups" element={<EmailGroupsPage />} />
+              <Route path="/templates" element={<TemplatesPage />} />
+              <Route path="/send-task" element={<SendTaskPage />} />
+              <Route path="/unsubscribes" element={<UnsubscribesPage />} />
+            </Routes>
+          </MainContent>
+        </AppContainer>
+      </Router>
+    </QueryClientProvider>
   );
 }
 

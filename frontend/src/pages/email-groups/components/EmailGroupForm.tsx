@@ -2,21 +2,39 @@ import { useState } from "react";
 import styled from "styled-components";
 import FileUpload from "../../../common/components/FileUpload";
 import KeyValueInput from "../../../common/components/KeyValueInput";
+import type {
+  EmailGroup,
+  EmailGroupRegion,
+  EmailGroupStatus,
+} from "../api/types";
+
+interface FileUploadProps {
+  onFileChange: (file: File) => void;
+  accept?: string;
+  file?: File | null;
+  id?: string;
+}
+
+interface KeyValuePair {
+  key: string;
+  value: string;
+}
+
+interface KeyValueInputProps {
+  onChange: (pairs: KeyValuePair[]) => void;
+  maxPairs?: number;
+  value?: Record<string, any>;
+  disabled?: boolean;
+}
 
 interface EmailGroupFormProps {
   mode: "create" | "edit" | "view";
-  initialData?: {
-    id: number;
-    name: string;
-    emails: string[];
-    status: "ready" | "uploading" | "completed" | "error";
-    totalEmails: number;
-    mergeFields?: { key: string; value: string }[];
-  };
+  initialData?: EmailGroup;
   onSubmit: (data: {
     name: string;
+    region?: EmailGroupRegion;
     file?: File;
-    mergeFields?: { key: string; value: string }[];
+    mailMergeData?: Record<string, any>;
   }) => void;
   onDelete?: () => void;
   onAddEmails?: (file: File) => void;
@@ -81,20 +99,22 @@ const StatusLabel = styled.span`
 `;
 
 const StatusValue = styled.span<{
-  $status?: NonNullable<EmailGroupFormProps["initialData"]>["status"];
+  $status?: EmailGroupStatus;
 }>`
   font-size: 0.9375rem;
   font-weight: 600;
   ${({ $status }) => {
     if (!$status) return "color: #1a2230;";
     switch ($status) {
-      case "ready":
+      case "PENDING":
         return "color: #475569;";
-      case "uploading":
+      case "WAITING":
+        return "color: #854d0e;";
+      case "PROCESSING":
         return "color: #0369a1;";
-      case "completed":
+      case "COMPLETED":
         return "color: #15803d;";
-      case "error":
+      case "FAILED":
         return "color: #b91c1c;";
     }
   }}
@@ -182,33 +202,36 @@ const Button = styled.button<{ variant?: "primary" | "danger" }>`
   `}
 `;
 
-const EmailGroupForm = ({
+const EmailGroupForm: React.FC<EmailGroupFormProps> = ({
   mode,
   initialData,
   onSubmit,
   onDelete,
   onAddEmails,
-}: EmailGroupFormProps) => {
-  const [name, setName] = useState(initialData?.name ?? "");
-  const [file, setFile] = useState<File | null>(null);
+}) => {
+  const [formData, setFormData] = useState({
+    name: initialData?.name || "",
+    region: initialData?.region || ("DOMESTIC" as EmailGroupRegion),
+    file: null as File | null,
+    mailMergeData: initialData?.mailMergeData || {},
+  });
   const [emailSearchTerm, setEmailSearchTerm] = useState("");
   const [addEmailFile, setAddEmailFile] = useState<File | null>(null);
-  const [mergeFields, setMergeFields] = useState<
-    { key: string; value: string }[]
-  >(initialData?.mergeFields ?? []);
   const [isEditing, setIsEditing] = useState(false);
+  const [emailList, setEmailList] = useState<string[]>([]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
-      name,
-      file: file ?? undefined,
-      mergeFields: mergeFields.length > 0 ? mergeFields : undefined,
+      name: formData.name,
+      region: formData.region,
+      file: formData.file || undefined,
+      mailMergeData: formData.mailMergeData,
     });
   };
 
   const handleFileChange = (newFile: File) => {
-    setFile(newFile);
+    setFormData({ ...formData, file: newFile });
   };
 
   const handleAddEmailFileChange = (newFile: File) => {
@@ -216,131 +239,115 @@ const EmailGroupForm = ({
     onAddEmails?.(newFile);
   };
 
-  const filteredEmails =
-    initialData?.emails
-      .filter((email) =>
-        email.toLowerCase().includes(emailSearchTerm.toLowerCase())
-      )
-      .slice(0, 5) ?? [];
+  const filteredEmails = emailList
+    .filter((email: string) =>
+      email.toLowerCase().includes(emailSearchTerm.toLowerCase())
+    )
+    .slice(0, 5);
 
   const isViewMode = mode === "view";
 
-  const statusMap = {
-    ready: "대기",
-    uploading: "업로드 중",
-    completed: "완료",
-    error: "오류",
+  const statusLabels: Record<EmailGroupStatus, string> = {
+    PENDING: "대기 중",
+    WAITING: "처리 대기",
+    PROCESSING: "처리 중",
+    COMPLETED: "완료",
+    FAILED: "실패",
   };
 
   return (
     <Form onSubmit={handleSubmit}>
       <FormGroup>
-        <Label htmlFor="name">그룹명</Label>
+        <Label>그룹명</Label>
         <Input
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="그룹명을 입력하세요"
+          type="text"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           readOnly={isViewMode && !isEditing}
         />
       </FormGroup>
 
       {isViewMode && initialData && (
-        <>
-          <FormGroup>
-            <Label>상태 정보</Label>
-            <StatusSection>
-              <StatusGrid>
-                <StatusItem>
-                  <StatusLabel>상태</StatusLabel>
-                  <StatusValue $status={initialData.status}>
-                    {statusMap[initialData.status]}
-                  </StatusValue>
-                </StatusItem>
-                <StatusItem>
-                  <StatusLabel>총 이메일 수</StatusLabel>
-                  <StatusValue>
-                    {initialData.totalEmails.toLocaleString()}개
-                  </StatusValue>
-                </StatusItem>
-              </StatusGrid>
-            </StatusSection>
-          </FormGroup>
-
-          <FormGroup>
-            <Label>메일 머지 필드</Label>
-            {isEditing ? (
-              <KeyValueInput onChange={setMergeFields} maxPairs={5} />
-            ) : (
-              <StatusSection>
-                {mergeFields.length > 0 ? (
-                  mergeFields.map((field, index) => (
-                    <StatusItem key={index}>
-                      <StatusLabel>{field.key}</StatusLabel>
-                      <StatusValue>{field.value}</StatusValue>
-                    </StatusItem>
-                  ))
-                ) : (
-                  <NoResults>등록된 머지 필드가 없습니다.</NoResults>
-                )}
-              </StatusSection>
-            )}
-          </FormGroup>
-
-          <FormGroup>
-            <Label>이메일 목록</Label>
-            <EmailSection>
-              <FileUpload
-                file={addEmailFile}
-                onFileChange={handleAddEmailFileChange}
-                id="add-email-input"
-              />
-              <SearchInput
-                type="text"
-                placeholder="이메일 검색 (최대 5개 표시)"
-                value={emailSearchTerm}
-                onChange={(e) => setEmailSearchTerm(e.target.value)}
-              />
-              <EmailList>
-                {filteredEmails.length > 0 ? (
-                  filteredEmails.map((email, index) => (
-                    <EmailItem key={index}>{email}</EmailItem>
-                  ))
-                ) : (
-                  <NoResults>
-                    {emailSearchTerm
-                      ? "검색 결과가 없습니다."
-                      : "검색어를 입력하세요."}
-                  </NoResults>
-                )}
-              </EmailList>
-            </EmailSection>
-          </FormGroup>
-        </>
+        <StatusSection>
+          <StatusGrid>
+            <StatusItem>
+              <StatusLabel>상태</StatusLabel>
+              <StatusValue $status={initialData.status}>
+                {statusLabels[initialData.status]}
+              </StatusValue>
+            </StatusItem>
+            <StatusItem>
+              <StatusLabel>이메일 수</StatusLabel>
+              <StatusValue>{initialData.addressCount}</StatusValue>
+            </StatusItem>
+          </StatusGrid>
+        </StatusSection>
       )}
 
-      {!isViewMode && (
-        <>
-          <FormGroup>
-            <Label>메일 머지 필드</Label>
-            <KeyValueInput onChange={setMergeFields} maxPairs={5} />
-          </FormGroup>
+      {mode !== "view" && (
+        <FormGroup>
+          <Label>이메일 파일</Label>
+          <FileUpload
+            file={formData.file}
+            onFileChange={handleFileChange}
+            accept=".csv,.xlsx"
+            id="email-file-upload"
+          />
+        </FormGroup>
+      )}
 
-          <FormGroup>
-            <Label>이메일 목록 엑셀 파일</Label>
+      <FormGroup>
+        <Label>머지 필드</Label>
+        <KeyValueInput
+          onChange={(pairs) => {
+            const newMergeData = pairs.reduce((acc, { key, value }) => {
+              acc[key] = value;
+              return acc;
+            }, {} as Record<string, any>);
+            setFormData({ ...formData, mailMergeData: newMergeData });
+          }}
+          maxPairs={5}
+        />
+      </FormGroup>
+
+      {isViewMode && (
+        <FormGroup>
+          <Label>이메일 목록</Label>
+          <EmailSection>
             <FileUpload
-              file={file}
-              onFileChange={handleFileChange}
-              id="file-input"
+              file={addEmailFile}
+              onFileChange={handleAddEmailFileChange}
+              id="add-email-input"
+              accept=".csv,.xlsx"
             />
-          </FormGroup>
-        </>
+            <SearchInput
+              type="text"
+              placeholder="이메일 검색 (최대 5개 표시)"
+              value={emailSearchTerm}
+              onChange={(e) => setEmailSearchTerm(e.target.value)}
+            />
+            <EmailList>
+              {filteredEmails.length > 0 ? (
+                filteredEmails.map((email: string, index: number) => (
+                  <EmailItem key={index}>{email}</EmailItem>
+                ))
+              ) : (
+                <NoResults>
+                  {emailSearchTerm
+                    ? "검색 결과가 없습니다."
+                    : "검색어를 입력하세요."}
+                </NoResults>
+              )}
+            </EmailList>
+          </EmailSection>
+        </FormGroup>
       )}
 
       <ButtonGroup>
         {mode === "view" ? (
           <>
             <Button
+              type="button"
               variant="primary"
               onClick={() => {
                 if (isEditing) {
@@ -352,7 +359,7 @@ const EmailGroupForm = ({
               {isEditing ? "저장하기" : "수정하기"}
             </Button>
             {onDelete && (
-              <Button variant="danger" onClick={onDelete}>
+              <Button type="button" variant="danger" onClick={onDelete}>
                 삭제하기
               </Button>
             )}
@@ -361,7 +368,10 @@ const EmailGroupForm = ({
                 type="button"
                 onClick={() => {
                   setIsEditing(false);
-                  setMergeFields(initialData?.mergeFields ?? []);
+                  setFormData({
+                    ...formData,
+                    mailMergeData: initialData?.mailMergeData || {},
+                  });
                 }}
               >
                 취소
