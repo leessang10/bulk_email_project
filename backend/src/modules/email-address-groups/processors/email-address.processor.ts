@@ -9,16 +9,9 @@ import { validateEmail } from '../../../common/utils/email-validator';
 import { EmailAddress } from '../../../database/entities/bulk-email/email-address.entity';
 import { EmailAddressGroup } from '../../../database/entities/bulk-email/email-group.entity';
 
-interface EmailData {
-  email: string;
-  name?: string;
-  addressType?: EmailAddressType;
-  memo?: string;
-}
-
 interface InsertEmailsJobData {
   groupId: number;
-  emails: EmailData[];
+  emails: string[];
 }
 
 @Processor('INSERT_EMAILS')
@@ -33,7 +26,7 @@ export class EmailAddressProcessor {
     private readonly emailGroupRepository: Repository<EmailAddressGroup>,
   ) {}
 
-  @Process()
+  @Process('INSERT_EMAILS')
   async processEmails(job: Job<InsertEmailsJobData>) {
     const { groupId, emails } = job.data;
     this.logger.log(`Processing ${emails.length} emails for group ${groupId}`);
@@ -45,13 +38,13 @@ export class EmailAddressProcessor {
       });
 
       // 1. 이메일 유효성 검증
-      const validEmails = emails.filter(({ email }) => validateEmail(email));
+      const validEmails = emails.filter((email) => validateEmail(email));
 
       // 2. 기존 이메일 주소 조회
       const existingEmails = await this.emailAddressRepository.find({
         where: {
           addressGroupId: groupId,
-          email: In(validEmails.map(({ email }) => email)),
+          email: In(validEmails),
         },
         select: ['email'],
       });
@@ -59,7 +52,7 @@ export class EmailAddressProcessor {
 
       // 3. 중복 제거
       const newEmails = validEmails.filter(
-        ({ email }) => !existingEmailSet.has(email),
+        (email) => !existingEmailSet.has(email),
       );
 
       // 4. 배치 처리
@@ -70,12 +63,12 @@ export class EmailAddressProcessor {
           .insert()
           .into(EmailAddress)
           .values(
-            batch.map(({ email, name, addressType, memo }) => ({
+            batch.map((email) => ({
               addressGroupId: groupId,
               email,
-              name: name || '',
-              addressType: addressType || EmailAddressType.NORMAL,
-              memo: memo || '',
+              name: '',
+              addressType: EmailAddressType.NORMAL,
+              memo: '',
               isSubscribed: true,
             })),
           )

@@ -2,6 +2,7 @@ import { InjectQueue } from '@nestjs/bull';
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,6 +18,7 @@ import { UpdateEmailGroupDto } from './dto/update-email-group.dto';
 
 @Injectable()
 export class EmailAddressGroupsService {
+  private readonly logger = new Logger(EmailAddressGroupsService.name);
   constructor(
     @InjectRepository(EmailAddressGroup, 'bulk_email')
     private readonly emailGroupRepository: Repository<EmailAddressGroup>,
@@ -96,7 +98,7 @@ export class EmailAddressGroupsService {
         skip_empty_lines: true,
       });
 
-      emails = records.map((record: { email: string }) => record.email);
+      emails = records.map((record: { Email: string }) => record.Email);
     } else if (
       file.mimetype ===
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -105,7 +107,7 @@ export class EmailAddressGroupsService {
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const records = xlsx.utils.sheet_to_json(worksheet);
 
-      emails = records.map((record: { email: string }) => record.email);
+      emails = records.map((record: { Email: string }) => record.Email);
     } else {
       throw new BadRequestException('지원하지 않는 파일 형식입니다.');
     }
@@ -115,8 +117,14 @@ export class EmailAddressGroupsService {
       status: EmailGroupStatus.WAITING,
     });
 
+    this.logger.log(`이메일 처리 작업을 큐에 추가: ${groupId}`);
+    this.logger.log(`이메일 갯수: ${emails.length}`);
+
     // 이메일 처리 작업을 큐에 추가
-    const job = await this.emailQueue.add({ groupId, emails });
+    const job = await this.emailQueue.add('INSERT_EMAILS', {
+      groupId: Number(groupId),
+      emails: emails,
+    });
 
     return job;
   }
