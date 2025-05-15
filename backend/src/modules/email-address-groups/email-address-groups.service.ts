@@ -8,13 +8,21 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
 import * as csv from 'csv-parse/sync';
-import { Like, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import * as xlsx from 'xlsx';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { EmailGroupStatus } from '../../common/enums/email-group.enum';
 import { EmailAddressGroup } from '../../database/entities/bulk-email/email-group.entity';
 import { CreateEmailGroupDto } from './dto/create-email-group.dto';
 import { UpdateEmailGroupDto } from './dto/update-email-group.dto';
+
+const ALLOWED_SORT_FIELDS = [
+  'name',
+  'addressCount',
+  'createdAt',
+  'updatedAt',
+  'status',
+];
 
 @Injectable()
 export class EmailAddressGroupsService {
@@ -41,23 +49,47 @@ export class EmailAddressGroupsService {
   }
 
   async findAll(paginationDto: PaginationDto) {
-    const [items, total] = await this.emailGroupRepository.findAndCount({
-      skip: paginationDto.skip,
-      take: paginationDto.limit,
-      order: { [paginationDto.sortBy]: paginationDto.sortOrder },
-      where: paginationDto.search
-        ? [
-            { name: Like(`%${paginationDto.search}%`) },
-            { region: Like(`%${paginationDto.search}%`) as any },
-          ]
-        : {},
-    });
+    const {
+      page,
+      pageSize,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      search,
+    } = paginationDto;
+
+    // 정렬 필드 유효성 검사
+    if (sortBy && !ALLOWED_SORT_FIELDS.includes(sortBy)) {
+      throw new BadRequestException(
+        `Invalid sortBy field. Allowed fields are: ${ALLOWED_SORT_FIELDS.join(', ')}`,
+      );
+    }
+
+    const queryBuilder = this.emailGroupRepository.createQueryBuilder('group');
+
+    // 검색어가 있는 경우
+    if (search) {
+      queryBuilder.where('group.name ILIKE :search', { search: `%${search}%` });
+    }
+
+    // 정렬
+    if (sortBy) {
+      queryBuilder.orderBy(
+        `group.${sortBy}`,
+        sortOrder.toUpperCase() as 'ASC' | 'DESC',
+      );
+    }
+
+    // 페이지네이션
+    const skip = (page - 1) * pageSize;
+    queryBuilder.skip(skip).take(pageSize);
+
+    const [items, total] = await queryBuilder.getManyAndCount();
 
     return {
       items,
       total,
-      page: Math.floor(paginationDto.skip / paginationDto.limit) + 1,
-      pageSize: paginationDto.limit,
+      page,
+      pageSize,
     };
   }
 

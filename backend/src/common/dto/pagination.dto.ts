@@ -1,33 +1,51 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import { IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class PaginationDto {
-  @ApiProperty({ description: '페이지당 항목 수', default: 10 })
-  @Type(() => Number)
-  @IsNumber()
+  @ApiPropertyOptional({
+    description: '페이지 번호',
+    default: 1,
+    minimum: 1,
+  })
+  @Transform(({ value }) => parseInt(value))
+  @IsInt()
   @Min(1)
   @IsOptional()
-  limit: number = 10;
+  page: number = 1;
 
-  @ApiProperty({ description: '건너뛸 항목 수', default: 0 })
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
+  @ApiPropertyOptional({
+    description: '페이지당 항목 수',
+    default: 10,
+    minimum: 1,
+  })
+  @Transform(({ value }) => parseInt(value))
+  @IsInt()
+  @Min(1)
   @IsOptional()
-  skip: number = 0;
+  pageSize: number = 10;
 
-  @ApiProperty({ description: '정렬 기준', default: 'created_at' })
+  @ApiPropertyOptional({
+    description: '정렬 기준 필드',
+    default: 'createdAt',
+  })
   @IsString()
   @IsOptional()
-  sortBy: string = 'created_at';
+  sortBy: string = 'createdAt';
 
-  @ApiProperty({ description: '정렬 방향', default: 'DESC' })
+  @ApiPropertyOptional({
+    description: '정렬 방향',
+    enum: ['asc', 'desc'],
+    default: 'desc',
+  })
   @IsString()
+  @IsIn(['asc', 'desc'])
   @IsOptional()
-  sortOrder: 'ASC' | 'DESC' = 'DESC';
+  sortOrder: 'asc' | 'desc' = 'desc';
 
-  @ApiProperty({ description: '검색어', required: false })
+  @ApiPropertyOptional({
+    description: '검색어',
+  })
   @IsString()
   @IsOptional()
   search?: string;
