@@ -1,16 +1,5 @@
 import { atom } from "jotai";
-
-export interface TableState {
-  searchQuery: string;
-  currentPage: number;
-  perPage: number;
-  sortKey: string;
-  sortDirection: "asc" | "desc";
-  filters: Record<string, string>;
-  isDetailDrawerOpen: boolean;
-  isCreateDrawerOpen: boolean;
-  selectedRow: any | null;
-}
+import type { TableState } from "./types";
 
 const tableAtoms = new Map<
   string,
@@ -19,99 +8,75 @@ const tableAtoms = new Map<
 
 const createTableAtomInstance = (tableId: string) => {
   const initialState: TableState = {
-    searchQuery: "",
     currentPage: 1,
     perPage: 10,
-    sortKey: "",
-    sortDirection: "asc",
+    sort: {
+      sortKey: "createdAt",
+      sortDirection: "desc",
+    },
     filters: {},
+    searchQuery: "",
     isDetailDrawerOpen: false,
     isCreateDrawerOpen: false,
     selectedRow: null,
   };
 
-  const baseAtom = atom<TableState>(initialState);
+  const tableStateAtom = atom(initialState);
+  const currentPageAtom = atom(
+    (get) => get(tableStateAtom).currentPage,
+    (get, set, currentPage: number) =>
+      set(tableStateAtom, { ...get(tableStateAtom), currentPage })
+  );
+  const perPageAtom = atom(
+    (get) => get(tableStateAtom).perPage,
+    (get, set, perPage: number) =>
+      set(tableStateAtom, { ...get(tableStateAtom), perPage })
+  );
+  const sortAtom = atom(
+    (get) => get(tableStateAtom).sort,
+    (get, set, sort: { sortKey: string; sortDirection: "asc" | "desc" }) =>
+      set(tableStateAtom, { ...get(tableStateAtom), sort })
+  );
+  const searchQueryAtom = atom(
+    (get) => get(tableStateAtom).searchQuery,
+    (get, set, searchQuery: string) =>
+      set(tableStateAtom, { ...get(tableStateAtom), searchQuery })
+  );
+  const filtersAtom = atom(
+    (get) => get(tableStateAtom).filters,
+    (get, set, filters: Record<string, string>) =>
+      set(tableStateAtom, { ...get(tableStateAtom), filters })
+  );
+  const detailDrawerAtom = atom(
+    (get) => ({
+      isOpen: get(tableStateAtom).isDetailDrawerOpen,
+      selectedRow: get(tableStateAtom).selectedRow,
+    }),
+    (get, set, value: { isOpen: boolean; selectedRow: any }) =>
+      set(tableStateAtom, {
+        ...get(tableStateAtom),
+        isDetailDrawerOpen: value.isOpen,
+        selectedRow: value.selectedRow,
+      })
+  );
+  const createDrawerAtom = atom(
+    (get) => get(tableStateAtom).isCreateDrawerOpen,
+    (get, set, isOpen: boolean) =>
+      set(tableStateAtom, {
+        ...get(tableStateAtom),
+        isCreateDrawerOpen: isOpen,
+      })
+  );
 
   return {
-    tableStateAtom: baseAtom,
-    searchQueryAtom: atom(
-      (get) => get(baseAtom).searchQuery,
-      (get, set, searchQuery: string) =>
-        set(baseAtom, {
-          ...get(baseAtom),
-          searchQuery,
-          currentPage: 1,
-        })
-    ),
-    currentPageAtom: atom(
-      (get) => get(baseAtom).currentPage,
-      (get, set, page: number) =>
-        set(baseAtom, {
-          ...get(baseAtom),
-          currentPage: page,
-        })
-    ),
-    perPageAtom: atom(
-      (get) => get(baseAtom).perPage,
-      (get, set, perPage: number) =>
-        set(baseAtom, {
-          ...get(baseAtom),
-          perPage,
-          currentPage: 1,
-        })
-    ),
-    sortAtom: atom(
-      (get) => ({
-        sortKey: get(baseAtom).sortKey,
-        sortDirection: get(baseAtom).sortDirection,
-      }),
-      (
-        get,
-        set,
-        {
-          sortKey,
-          sortDirection,
-        }: { sortKey: string; sortDirection: "asc" | "desc" }
-      ) =>
-        set(baseAtom, {
-          ...get(baseAtom),
-          sortKey,
-          sortDirection,
-        })
-    ),
-    filtersAtom: atom(
-      (get) => get(baseAtom).filters,
-      (get, set, filters: Record<string, string>) =>
-        set(baseAtom, {
-          ...get(baseAtom),
-          filters,
-          currentPage: 1,
-        })
-    ),
-    detailDrawerAtom: atom(
-      (get) => ({
-        isOpen: get(baseAtom).isDetailDrawerOpen,
-        selectedRow: get(baseAtom).selectedRow,
-      }),
-      (
-        get,
-        set,
-        { isOpen, selectedRow }: { isOpen: boolean; selectedRow: any | null }
-      ) =>
-        set(baseAtom, {
-          ...get(baseAtom),
-          isDetailDrawerOpen: isOpen,
-          selectedRow,
-        })
-    ),
-    createDrawerAtom: atom(
-      (get) => get(baseAtom).isCreateDrawerOpen,
-      (get, set, isOpen: boolean) =>
-        set(baseAtom, {
-          ...get(baseAtom),
-          isCreateDrawerOpen: isOpen,
-        })
-    ),
+    tableStateAtom,
+    currentPageAtom,
+    perPageAtom,
+    sortAtom,
+    searchQueryAtom,
+    filtersAtom,
+    detailDrawerAtom,
+    createDrawerAtom,
   };
 };
 

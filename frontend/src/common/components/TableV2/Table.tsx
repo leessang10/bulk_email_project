@@ -5,6 +5,7 @@ import { createTableAtom } from "./atoms";
 import Drawer from "./Drawer";
 import Pagination from "./Pagination";
 import SearchFilter from "./SearchFilter";
+import type { ColumnDef, TableParams } from "./types";
 
 const TableContainer = styled.div`
   background: white;
@@ -51,15 +52,9 @@ const Tr = styled.tr`
   }
 `;
 
-interface Column {
-  key: string;
-  label: string;
-  render?: (value: any) => React.ReactNode;
-}
-
-interface TableV2Props<T> {
+export interface TableV2Props<T> {
   tableId: string;
-  columns: Column[];
+  columns: ColumnDef<T>[];
   data: T[];
   totalItems: number;
   sortOptions: { value: string; label: string }[];
@@ -73,14 +68,7 @@ interface TableV2Props<T> {
     onClick: () => void;
     variant?: "primary" | "secondary" | "danger";
   }>;
-  onDataRequest: (params: {
-    page: number;
-    perPage: number;
-    sortKey: string;
-    sortDirection: "asc" | "desc";
-    filters: Record<string, string>;
-    searchQuery: string;
-  }) => void;
+  onDataRequest: (params: TableParams) => void;
   onRowClick?: (row: T) => void;
   DetailDrawerContent?: React.FC<{ data: T; onClose?: () => void }>;
   CreateDrawerContent?: React.FC<{ onClose?: () => void }>;
