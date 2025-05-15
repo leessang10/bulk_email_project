@@ -7,7 +7,7 @@ import type {
   UpdateEmailGroupData,
 } from "./types";
 
-const API_BASE_URL = "http://localhost:11001/email-address-groups";
+const API_BASE_URL = "http://localhost:11001/api/v1/email-address-groups";
 
 const DEFAULT_PARAMS: Partial<EmailGroupsParams> = {
   page: 1,
@@ -40,6 +40,19 @@ export const emailGroupsApi = {
   create: async (createData: CreateEmailGroupData): Promise<EmailGroup> => {
     const formData = new FormData();
     formData.append("name", createData.name);
+
+    if (
+      createData.mailMergeData &&
+      Object.keys(createData.mailMergeData).length > 0
+    ) {
+      formData.append(
+        "mailMergeData",
+        typeof createData.mailMergeData === "string"
+          ? createData.mailMergeData
+          : JSON.stringify(createData.mailMergeData)
+      );
+    }
+
     if (createData.file) {
       formData.append("file", createData.file);
     }
@@ -56,9 +69,29 @@ export const emailGroupsApi = {
     id: number,
     updateData: UpdateEmailGroupData
   ): Promise<EmailGroup> => {
+    const formData = new FormData();
+
+    if (updateData.name) {
+      formData.append("name", updateData.name);
+    }
+
+    if (updateData.mailMergeData) {
+      formData.append(
+        "mailMergeData",
+        typeof updateData.mailMergeData === "string"
+          ? updateData.mailMergeData
+          : JSON.stringify(updateData.mailMergeData)
+      );
+    }
+
     const { data } = await axios.put<EmailGroup>(
       `${API_BASE_URL}/${id}`,
-      updateData
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
     return data;
   },

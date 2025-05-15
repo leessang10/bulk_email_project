@@ -1,103 +1,87 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { emailGroupsApi } from "../api/emailGroups";
-import type { EmailGroup } from "../api/types";
+import type {
+  CreateEmailGroupData,
+  EmailGroup,
+  EmailGroupsParams,
+  UpdateEmailGroupData,
+} from "../api/types";
 
-export const useEmailGroups = () => {
-  const [data, setData] = useState<EmailGroup[]>([]);
-  const [totalItems, setTotalItems] = useState(0);
+export const useEmailGroups = (initialParams?: Partial<EmailGroupsParams>) => {
   const queryClient = useQueryClient();
 
+  // 목록 조회
+  const { data: listData, ...listQuery } = useQuery({
+    queryKey: ["email-groups", initialParams],
+    queryFn: () => emailGroupsApi.getList(initialParams || {}),
+  });
+
+  // 생성
   const createMutation = useMutation({
-    mutationFn: emailGroupsApi.create,
+    mutationFn: (data: CreateEmailGroupData) => emailGroupsApi.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["emailGroups"] });
+      queryClient.invalidateQueries({ queryKey: ["email-groups"] });
     },
   });
 
+  // 수정
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) =>
+    mutationFn: ({ id, data }: { id: number; data: UpdateEmailGroupData }) =>
       emailGroupsApi.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["emailGroups"] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["email-groups"] });
+      queryClient.invalidateQueries({
+        queryKey: ["email-groups", variables.id],
+      });
     },
   });
 
+  // 삭제
   const deleteMutation = useMutation({
     mutationFn: emailGroupsApi.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["emailGroups"] });
+      queryClient.invalidateQueries({ queryKey: ["email-groups"] });
     },
   });
 
+  // 이메일 추가
   const addEmailsMutation = useMutation({
     mutationFn: ({ id, file }: { id: number; file: File }) =>
       emailGroupsApi.addEmails(id, file),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["emailGroups"] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["email-groups"] });
+      queryClient.invalidateQueries({
+        queryKey: ["email-groups", variables.id],
+      });
     },
   });
 
-  const handleDataRequest = async ({
-    page,
-    perPage,
-    sortKey,
-    sortDirection,
-    searchQuery,
-  }: {
-    page: number;
-    perPage: number;
-    sortKey: string;
-    sortDirection: "asc" | "desc";
-    searchQuery: string;
-  }) => {
-    try {
-      const response = await emailGroupsApi.getList({
-        page,
-        pageSize: perPage,
-        sortBy: sortKey || undefined,
-        sortOrder: sortDirection,
-        search: searchQuery || undefined,
-      });
-
-      setData(response.items);
-      setTotalItems(response.total);
-    } catch (error) {
-      console.error("Failed to fetch email groups:", error);
-    }
+  const handleDataRequest = async (params: Partial<EmailGroupsParams>) => {
+    return emailGroupsApi.getList(params);
   };
 
-  const handleSubmit = async (data: { name: string; file?: File }) => {
-    try {
-      await createMutation.mutateAsync(data);
-    } catch (error) {
-      console.error("Failed to create email group:", error);
-    }
+  const handleSubmit = async (data: CreateEmailGroupData) => {
+    await createMutation.mutateAsync(data);
   };
 
   const handleAddEmails = async (id: number, file: File) => {
-    try {
-      await addEmailsMutation.mutateAsync({ id, file });
-    } catch (error) {
-      console.error("Failed to add emails:", error);
-    }
+    await addEmailsMutation.mutateAsync({ id, file });
   };
 
   const handleDelete = async (group: EmailGroup) => {
-    try {
+    if (window.confirm(`'${group.name}' 이메일 그룹을 삭제하시겠습니까?`)) {
       await deleteMutation.mutateAsync(group.id);
-    } catch (error) {
-      console.error("Failed to delete email group:", error);
     }
   };
 
   return {
-    data,
-    totalItems,
+    data: listData?.items || [],
+    totalItems: listData?.total || 0,
+    isLoading: listQuery.isLoading,
     createMutation,
     updateMutation,
     deleteMutation,
-    addEmailsMutation,
+    getEmailGroup: emailGroupsApi.getOne,
     handleDataRequest,
     handleSubmit,
     handleAddEmails,

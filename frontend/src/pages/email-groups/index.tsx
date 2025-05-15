@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { useMemo } from "react";
 import PageLayout from "../../common/components/PageLayout";
@@ -10,12 +11,15 @@ import { useEmailGroups } from "./hooks/useEmailGroups";
 const EmailGroupsPage = () => {
   const atoms = useMemo(() => createTableAtom("email-groups"), []);
   const [, setCreateDrawerOpen] = useAtom(atoms.createDrawerAtom);
+
   const {
     data,
     totalItems,
+    isLoading,
     createMutation,
     updateMutation,
     deleteMutation,
+    getEmailGroup,
     handleDataRequest,
     handleSubmit,
     handleAddEmails,
@@ -34,6 +38,7 @@ const EmailGroupsPage = () => {
         totalItems={totalItems}
         sortOptions={SORT_OPTIONS}
         onDataRequest={handleDataRequest}
+        isLoading={isLoading}
         actions={[
           {
             label: "새 그룹 만들기",
@@ -41,17 +46,44 @@ const EmailGroupsPage = () => {
             variant: "primary",
           },
         ]}
-        DetailDrawerContent={({ data, onClose }) => (
-          <EmailGroupForm
-            mode="view"
-            initialData={data}
-            onSubmit={(formData) =>
-              updateMutation.mutate({ id: data.id, data: formData })
-            }
-            onDelete={() => handleDelete(data)}
-            onAddEmails={(file) => handleAddEmails(data.id, file)}
-          />
-        )}
+        DetailDrawerContent={({ data: rowData, onClose }) => {
+          const { data: detailData, isLoading: isDetailLoading } = useQuery({
+            queryKey: ["email-groups", rowData.id],
+            queryFn: () => getEmailGroup(rowData.id),
+            enabled: !!rowData.id,
+          });
+
+          if (isDetailLoading) return <div>로딩 중...</div>;
+          if (!detailData) return null;
+
+          return (
+            <EmailGroupForm
+              mode="view"
+              initialData={detailData}
+              onSubmit={(formData) =>
+                updateMutation.mutate(
+                  {
+                    id: detailData.id,
+                    data: {
+                      name: formData.name,
+                      mailMergeData: formData.mailMergeData,
+                    },
+                  },
+                  {
+                    onSuccess: () => {
+                      onClose?.();
+                    },
+                  }
+                )
+              }
+              onDelete={() => {
+                handleDelete(detailData);
+                onClose?.();
+              }}
+              onAddEmails={(file) => handleAddEmails(detailData.id, file)}
+            />
+          );
+        }}
         CreateDrawerContent={({ onClose }) => (
           <EmailGroupForm
             mode="create"

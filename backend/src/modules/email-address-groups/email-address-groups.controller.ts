@@ -28,7 +28,7 @@ import { UpdateEmailGroupDto } from './dto/update-email-group.dto';
 import { EmailAddressGroupsService } from './email-address-groups.service';
 
 @ApiTags('이메일 그룹')
-@Controller('email-address-groups')
+@Controller('api/v1/email-address-groups')
 export class EmailAddressGroupsController {
   constructor(
     private readonly emailAddressGroupsService: EmailAddressGroupsService,

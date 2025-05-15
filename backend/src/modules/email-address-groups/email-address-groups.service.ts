@@ -40,7 +40,23 @@ export class EmailAddressGroupsService {
     createEmailGroupDto: CreateEmailGroupDto,
     file?: Express.Multer.File,
   ) {
-    const emailGroup = this.emailGroupRepository.create(createEmailGroupDto);
+    // mailMergeData가 문자열로 전달된 경우 파싱
+    if (typeof createEmailGroupDto.mailMergeData === 'string') {
+      try {
+        createEmailGroupDto.mailMergeData = JSON.parse(
+          createEmailGroupDto.mailMergeData,
+        );
+      } catch (error) {
+        throw new BadRequestException(
+          '메일 머지 데이터 형식이 올바르지 않습니다.',
+        );
+      }
+    }
+
+    const emailGroup = this.emailGroupRepository.create({
+      ...createEmailGroupDto,
+      mailMergeData: createEmailGroupDto.mailMergeData || {},
+    });
     const savedGroup = await this.emailGroupRepository.save(emailGroup);
 
     if (file) {
@@ -107,7 +123,26 @@ export class EmailAddressGroupsService {
 
   async update(id: number, updateEmailGroupDto: UpdateEmailGroupDto) {
     const emailGroup = await this.findOne(id);
-    Object.assign(emailGroup, updateEmailGroupDto);
+
+    // mailMergeData가 문자열로 전달된 경우 파싱
+    if (typeof updateEmailGroupDto.mailMergeData === 'string') {
+      try {
+        updateEmailGroupDto.mailMergeData = JSON.parse(
+          updateEmailGroupDto.mailMergeData,
+        );
+      } catch (error) {
+        throw new BadRequestException(
+          '메일 머지 데이터 형식이 올바르지 않습니다.',
+        );
+      }
+    }
+
+    Object.assign(emailGroup, {
+      ...updateEmailGroupDto,
+      mailMergeData:
+        updateEmailGroupDto.mailMergeData || emailGroup.mailMergeData,
+    });
+
     return this.emailGroupRepository.save(emailGroup);
   }
 
