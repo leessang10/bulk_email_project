@@ -1,8 +1,21 @@
 import { useAtom } from "jotai";
+import { useEffect } from "react";
 import { MdDesktopWindows, MdPhoneAndroid } from "react-icons/md";
 import styled from "styled-components";
-import { templateContentAtom, type ViewMode, viewModeAtom } from "./atoms";
+import {
+  editorTreeAtom,
+  templateContentAtom,
+  type ViewMode,
+  viewModeAtom,
+} from "./atoms";
 import { mockTemplateContent } from "./mockData";
+import type {
+  Block,
+  ButtonBlock,
+  ImageBlock,
+  LayoutBlock,
+  TextBlock,
+} from "./types";
 
 const Container = styled.div`
   width: 800px;
@@ -83,12 +96,118 @@ const PreviewContent = styled.div`
   overflow: auto;
 `;
 
+const convertBlockToHtml = (block: Block): string => {
+  switch (block.type) {
+    case "text": {
+      const textBlock = block as TextBlock;
+      const style = textBlock.style;
+      return `
+        <div style="
+          ${style.bold ? "font-weight: bold;" : ""}
+          ${style.italic ? "font-style: italic;" : ""}
+          ${style.underline ? "text-decoration: underline;" : ""}
+          ${style.fontSize ? `font-size: ${style.fontSize};` : ""}
+          ${style.color ? `color: ${style.color};` : ""}
+          ${style.textAlign ? `text-align: ${style.textAlign};` : ""}
+        ">
+          ${textBlock.content}
+        </div>
+      `;
+    }
+    case "button": {
+      const buttonBlock = block as ButtonBlock;
+      const style = buttonBlock.style;
+      return `
+        <a href="${buttonBlock.url}" style="
+          display: inline-block;
+          padding: ${style.padding || "8px 16px"};
+          background-color: ${style.backgroundColor || "#007bff"};
+          color: ${style.color || "#ffffff"};
+          border-radius: ${style.borderRadius || "4px"};
+          text-decoration: none;
+          font-size: 14px;
+          line-height: 1.5;
+          text-align: center;
+        ">
+          ${buttonBlock.label}
+        </a>
+      `;
+    }
+    case "image": {
+      const imageBlock = block as ImageBlock;
+      return `
+        <img
+          src="${imageBlock.src}"
+          alt="${imageBlock.alt || ""}"
+          style="
+            max-width: 100%;
+            height: auto;
+            ${imageBlock.width ? `width: ${imageBlock.width};` : ""}
+            display: block;
+          "
+        />
+      `;
+    }
+    default:
+      return "";
+  }
+};
+
+const convertTreeToHtml = (tree: {
+  blocks: Record<string, Block>;
+  rootIds: string[];
+}): string => {
+  const renderLayout = (layoutBlock: LayoutBlock): string => {
+    const columnWidth = 100 / layoutBlock.columns;
+    const columns = Array.from({ length: layoutBlock.columns }).map(
+      (_, columnIndex) => {
+        const columnBlocks = layoutBlock.children
+          .filter((child) => child.columnIndex === columnIndex)
+          .map((child) => tree.blocks[child.blockId])
+          .map(convertBlockToHtml)
+          .join("");
+
+        return `
+        <td style="width: ${columnWidth}%; padding: 16px; vertical-align: top;">
+          ${columnBlocks}
+        </td>
+      `;
+      }
+    );
+
+    return `
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <tr>
+          ${columns.join("")}
+        </tr>
+      </table>
+    `;
+  };
+
+  return tree.rootIds
+    .map((id) => {
+      const block = tree.blocks[id];
+      if (block.type === "layout") {
+        return renderLayout(block as LayoutBlock);
+      }
+      return convertBlockToHtml(block);
+    })
+    .join("");
+};
+
 const PreviewPanel = () => {
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
-  const [templateContent] = useAtom(templateContentAtom);
+  const [tree] = useAtom(editorTreeAtom);
+  const [, setTemplateContent] = useAtom(templateContentAtom);
 
-  // 실제 템플릿 내용이 없을 경우 목업 데이터 사용
-  const content = templateContent.html ? templateContent : mockTemplateContent;
+  // 에디터 트리가 변경될 때마다 HTML 업데이트
+  useEffect(() => {
+    const html = convertTreeToHtml(tree);
+    setTemplateContent({
+      html,
+      style: mockTemplateContent.style, // 기본 스타일 유지
+    });
+  }, [tree, setTemplateContent]);
 
   return (
     <Container>
@@ -114,8 +233,10 @@ const PreviewPanel = () => {
       <PreviewContainer>
         <PreviewFrame viewMode={viewMode}>
           <PreviewContent>
-            <style>{content.style}</style>
-            <div dangerouslySetInnerHTML={{ __html: content.html }} />
+            <style>{mockTemplateContent.style}</style>
+            <div
+              dangerouslySetInnerHTML={{ __html: convertTreeToHtml(tree) }}
+            />
           </PreviewContent>
         </PreviewFrame>
       </PreviewContainer>

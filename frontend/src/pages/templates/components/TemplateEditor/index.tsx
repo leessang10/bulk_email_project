@@ -2,20 +2,8 @@ import { Provider } from "jotai";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import styled from "styled-components";
-import EditorCanvas from "./components/EditorCanvas";
+import EditorPanel from "./components/EditorPanel";
 import PreviewPanel from "./components/PreviewPanel";
-const TemplateEditor = () => {
-  return (
-    <Provider>
-      <DndProvider backend={HTML5Backend}>
-        <Container>
-          <EditorCanvas />
-          <PreviewPanel />
-        </Container>
-      </DndProvider>
-    </Provider>
-  );
-};
 
 const Container = styled.div`
   display: flex;
@@ -23,5 +11,18 @@ const Container = styled.div`
   background: #fff;
   overflow: hidden;
 `;
+
+const TemplateEditor = () => {
+  return (
+    <Provider>
+      <DndProvider backend={HTML5Backend}>
+        <Container>
+          <EditorPanel />
+          <PreviewPanel />
+        </Container>
+      </DndProvider>
+    </Provider>
+  );
+};
 
 export default TemplateEditor;
