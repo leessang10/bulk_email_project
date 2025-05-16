@@ -1,30 +1,27 @@
-import { Provider as JotaiProvider } from "jotai";
+import { Provider } from "jotai";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import styled from "styled-components";
-import CenterPanel from "./components/CenterPanel";
-import LeftPanel from "./components/LeftPanel";
-import RightPanel from "./components/RightPanel";
-
+import EditorCanvas from "./components/EditorCanvas";
+import PreviewPanel from "./components/PreviewPanel";
 const TemplateEditor = () => {
   return (
-    <JotaiProvider>
+    <Provider>
       <DndProvider backend={HTML5Backend}>
         <Container>
-          <LeftPanel />
-          <CenterPanel />
-          <RightPanel />
+          <EditorCanvas />
+          <PreviewPanel />
         </Container>
       </DndProvider>
-    </JotaiProvider>
+    </Provider>
   );
 };
 
 const Container = styled.div`
   display: flex;
   height: 100vh;
-  overflow: hidden;
   background: #fff;
+  overflow: hidden;
 `;
 
 export default TemplateEditor;
