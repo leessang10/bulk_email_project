@@ -5,6 +5,7 @@ import EmailGroupsPage from "./pages/email-groups";
 import SendTaskPage from "./pages/send-task";
 import StatisticsPage from "./pages/statistics";
 import TemplatesPage from "./pages/templates";
+import NewTemplatePage from "./pages/templates/new";
 import UnsubscribesPage from "./pages/unsubscribes";
 
 const AppContainer = styled.div`
@@ -63,6 +64,7 @@ function App() {
               <Route path="/statistics" element={<StatisticsPage />} />
               <Route path="/email-groups" element={<EmailGroupsPage />} />
               <Route path="/templates" element={<TemplatesPage />} />
+              <Route path="/templates/new" element={<NewTemplatePage />} />
               <Route path="/send-task" element={<SendTaskPage />} />
               <Route path="/unsubscribes" element={<UnsubscribesPage />} />
             </Routes>
