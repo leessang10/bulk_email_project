@@ -11,8 +11,8 @@ import {
   MdFormatUnderlined,
 } from "react-icons/md";
 import styled from "styled-components";
-import { editorTreeAtom, selectedBlockAtom } from "./atoms";
-import type { ButtonBlock, ImageBlock, TextBlock } from "./types";
+import { editorTreeAtom, selectedBlockAtom } from "../../../atoms";
+import type { ButtonBlock, ImageBlock, TextBlock } from "../../../types";
 
 const Container = styled.div`
   width: 100%;

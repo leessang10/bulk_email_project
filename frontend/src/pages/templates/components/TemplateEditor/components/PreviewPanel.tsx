@@ -7,15 +7,15 @@ import {
   templateContentAtom,
   type ViewMode,
   viewModeAtom,
-} from "./atoms";
-import { mockTemplateContent } from "./mockData";
+} from "../atoms";
+import { mockTemplateContent } from "../mockData";
 import type {
   Block,
   ButtonBlock,
   ImageBlock,
   LayoutBlock,
   TextBlock,
-} from "./types";
+} from "../types";
 
 const Container = styled.div`
   width: 800px;

@@ -3,9 +3,9 @@ import { nanoid } from "nanoid";
 import React from "react";
 import { MdViewColumn } from "react-icons/md";
 import styled from "styled-components";
-import { editorTreeAtom } from "./atoms";
+import { editorTreeAtom } from "../../../atoms";
+import type { EditorTree, LayoutBlock } from "../../../types";
 import FloatingMenu from "./FloatingMenu";
-import type { EditorTree, LayoutBlock } from "./types";
 
 const Button = styled.button`
   width: 100%;
