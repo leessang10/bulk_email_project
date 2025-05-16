@@ -57,11 +57,11 @@ const ViewModeButton = styled.button<{ active: boolean }>`
 
 const PreviewContainer = styled.div`
   flex: 1;
-  background: white;
+  background: #f0f0f0;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
-  padding: 20px;
-  overflow: hidden;
+  padding: 40px;
+  overflow: auto;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -69,14 +69,18 @@ const PreviewContainer = styled.div`
 
 const PreviewFrame = styled.div<{ viewMode: ViewMode }>`
   width: ${(props) => (props.viewMode === "mobile" ? "375px" : "100%")};
+  max-width: 800px;
   min-height: 600px;
   background: white;
   transition: width 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
 `;
 
 const PreviewContent = styled.div`
   width: 100%;
   height: 100%;
+  overflow: auto;
 `;
 
 const PreviewPanel = () => {
