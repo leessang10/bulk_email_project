@@ -1,6 +1,4 @@
-import { useAtom } from "jotai";
 import styled from "styled-components";
-import { selectedComponentBlockIdAtom } from "../../atoms";
 import EditorCanvas from "./EditorCanvas";
 import EditorToolbar from "./EditorToolbar";
 
@@ -22,10 +20,6 @@ const ScrollContainer = styled.div`
 `;
 
 const EditorPanel = () => {
-  const [selectedBlockId] = useAtom(selectedComponentBlockIdAtom);
-
-  console.log("EditorPanel render:", { selectedBlockId });
-
   return (
     <Container>
       <EditorToolbar />

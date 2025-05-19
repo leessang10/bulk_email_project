@@ -1,43 +1,34 @@
 import { useAtom } from "jotai";
+import React from "react";
 import { useDrop } from "react-dnd";
 import styled from "styled-components";
-import { editorStateAtom, selectBlockAtom } from "../../../../../atoms";
+import { editorStateAtom, selectBlockAtom } from "../../../../../atoms/editor";
 import type { ComponentBlock, EditorState } from "../../../../../types";
+import AddComponentButton from "../../AddComponentButton";
 import ContentBlock from "./ContentBlock";
-
-const Container = styled.div<{ $isOver: boolean }>`
-  flex: 1;
-  min-height: 100px;
-  background: ${(props) => (props.$isOver ? "#f0f0f0" : "white")};
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
-  gap: 12px;
-  position: relative;
-`;
-
-const EmptyText = styled.div`
-  color: #999;
-  font-size: 14px;
-  text-align: center;
-`;
 
 interface ColumnBlockProps {
   layoutId: string;
   columnId: string;
   componentBlock: ComponentBlock | null;
   selectedBlockId: string | null;
-  onAddBlock: (e: React.MouseEvent) => void;
 }
+
+const Container = styled.div<{ $isOver: boolean }>`
+  padding: 10px;
+  background: ${({ $isOver }) =>
+    $isOver ? "rgba(0, 123, 255, 0.04)" : "transparent"};
+  border-radius: 4px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+`;
 
 const ColumnBlock: React.FC<ColumnBlockProps> = ({
   layoutId,
   columnId,
   componentBlock,
   selectedBlockId,
-  onAddBlock,
 }) => {
   const [, setEditorState] = useAtom(editorStateAtom);
   const [, selectBlock] = useAtom(selectBlockAtom);
@@ -59,20 +50,9 @@ const ColumnBlock: React.FC<ColumnBlockProps> = ({
       }
 
       setEditorState((prev: EditorState) => {
-        // 이전 위치의 컴포넌트 블록을 제거
         const sourceColumnBlock =
           prev.layouts[item.sourceLayoutId].columnBlocks[item.sourceColumnId];
-        const updatedSourceColumn = {
-          ...sourceColumnBlock,
-          componentBlock: null,
-        };
-
-        // 새로운 위치에 컴포넌트 블록을 추가
         const targetColumnBlock = prev.layouts[layoutId].columnBlocks[columnId];
-        const updatedTargetColumn = {
-          ...targetColumnBlock,
-          componentBlock: item.componentBlock,
-        };
 
         return {
           ...prev,
@@ -82,14 +62,20 @@ const ColumnBlock: React.FC<ColumnBlockProps> = ({
               ...prev.layouts[item.sourceLayoutId],
               columnBlocks: {
                 ...prev.layouts[item.sourceLayoutId].columnBlocks,
-                [item.sourceColumnId]: updatedSourceColumn,
+                [item.sourceColumnId]: {
+                  ...sourceColumnBlock,
+                  componentBlock: null,
+                },
               },
             },
             [layoutId]: {
               ...prev.layouts[layoutId],
               columnBlocks: {
                 ...prev.layouts[layoutId].columnBlocks,
-                [columnId]: updatedTargetColumn,
+                [columnId]: {
+                  ...targetColumnBlock,
+                  componentBlock: item.componentBlock,
+                },
               },
             },
           },
@@ -102,16 +88,11 @@ const ColumnBlock: React.FC<ColumnBlockProps> = ({
   });
 
   const handleSelectBlock = (blockId: string) => {
-    console.log("Selecting block with context:", {
-      blockId,
-      layoutId,
-      columnId,
-    });
     selectBlock({ blockId, layoutId, columnId });
   };
 
   return (
-    <Container ref={drop} $isOver={isOver} onClick={onAddBlock}>
+    <Container ref={drop} $isOver={isOver}>
       {componentBlock ? (
         <ContentBlock
           block={componentBlock}
@@ -121,7 +102,7 @@ const ColumnBlock: React.FC<ColumnBlockProps> = ({
           columnId={columnId}
         />
       ) : (
-        <EmptyText>컴포넌트를 추가하려면 클릭하세요</EmptyText>
+        <AddComponentButton layoutId={layoutId} columnBlockId={columnId} />
       )}
     </Container>
   );

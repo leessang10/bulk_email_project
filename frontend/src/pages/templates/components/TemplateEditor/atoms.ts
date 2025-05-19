@@ -158,3 +158,39 @@ export const selectBlockAtom = atom(
     set(selectedColumnBlockIdAtom, selection.columnId);
   }
 );
+
+// 블록 삭제를 위한 atom
+export const deleteBlockAtom = atom(null, (get, set) => {
+  const layoutId = get(selectedLayoutIdAtom);
+  const columnId = get(selectedColumnBlockIdAtom);
+
+  if (!layoutId || !columnId) return;
+
+  const editorState = get(editorStateAtom);
+  const layout = editorState.layouts[layoutId];
+  const columnBlock = layout?.columnBlocks[columnId];
+
+  if (!layout || !columnBlock) return;
+
+  // 상태 업데이트
+  const newState: EditorState = {
+    ...editorState,
+    layouts: {
+      ...editorState.layouts,
+      [layoutId]: {
+        ...layout,
+        columnBlocks: {
+          ...layout.columnBlocks,
+          [columnId]: {
+            ...columnBlock,
+            componentBlock: null, // 컴포넌트 블록을 null로 설정하여 삭제
+          },
+        },
+      },
+    },
+  };
+
+  // 상태 업데이트 및 선택 해제
+  set(editorStateAtom, newState);
+  set(selectedComponentBlockIdAtom, null);
+});

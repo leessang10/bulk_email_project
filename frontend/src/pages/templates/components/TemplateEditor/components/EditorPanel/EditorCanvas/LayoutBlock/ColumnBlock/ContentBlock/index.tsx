@@ -1,11 +1,10 @@
 import { useAtom } from "jotai";
 import { useDrag } from "react-dnd";
 import styled from "styled-components";
-import { editorStateAtom } from "../../../../../../atoms";
+import { updateBlockContentAtom } from "../../../../../../atoms/editor";
 import type {
   ButtonBlock,
   ComponentBlock,
-  ImageBlock,
   TextBlock,
 } from "../../../../../../types";
 
@@ -109,54 +108,40 @@ const ImageContent = styled.img<{ width?: string }>`
 
 const renderBlock = (
   block: ComponentBlock,
-  isSelected: boolean,
-  onSelect: (blockId: string) => void,
-  onContentChange: (content: string) => void,
-  layoutId: string,
-  columnId: string
+  onContentChange: (content: string) => void
 ) => {
-  const handleContentClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onSelect(block.id);
-  };
-
   switch (block.type) {
     case "text": {
-      const textBlock = block as TextBlock;
       return (
         <TextContent
-          style={textBlock.style}
+          style={block.style}
           contentEditable
           suppressContentEditableWarning
-          onClick={handleContentClick}
           onInput={(e) => {
             const content = e.currentTarget.textContent || "";
             onContentChange(content);
           }}
         >
-          {textBlock.content}
+          {block.content}
         </TextContent>
       );
     }
     case "button": {
-      const buttonBlock = block as ButtonBlock;
       return (
-        <ContentWrapper align={buttonBlock.style?.align}>
-          <ButtonContent style={buttonBlock.style} onClick={handleContentClick}>
-            {buttonBlock.label || "버튼"}
+        <ContentWrapper align={block.style?.align}>
+          <ButtonContent style={block.style}>
+            {block.label || "버튼"}
           </ButtonContent>
         </ContentWrapper>
       );
     }
     case "image": {
-      const imageBlock = block as ImageBlock;
       return (
-        <ContentWrapper align={imageBlock.align}>
+        <ContentWrapper align={block.align}>
           <ImageContent
-            src={imageBlock.src}
-            alt={imageBlock.alt || ""}
-            width={imageBlock.width}
-            onClick={handleContentClick}
+            src={block.src}
+            alt={block.alt || ""}
+            width={block.width}
             onError={(e) => {
               e.currentTarget.src = "";
             }}
@@ -184,29 +169,11 @@ const ContentBlock: React.FC<ContentBlockProps> = ({
   layoutId,
   columnId,
 }) => {
-  const [, setEditorState] = useAtom(editorStateAtom);
+  const [, updateBlockContent] = useAtom(updateBlockContentAtom);
 
   const handleContentChange = (content: string) => {
     if (block.type === "text") {
-      setEditorState((prev) => ({
-        ...prev,
-        layouts: {
-          ...prev.layouts,
-          [layoutId]: {
-            ...prev.layouts[layoutId],
-            columnBlocks: {
-              ...prev.layouts[layoutId].columnBlocks,
-              [columnId]: {
-                ...prev.layouts[layoutId].columnBlocks[columnId],
-                componentBlock: {
-                  ...block,
-                  content,
-                },
-              },
-            },
-          },
-        },
-      }));
+      updateBlockContent({ layoutId, columnId, content });
     }
   };
 
@@ -234,14 +201,7 @@ const ContentBlock: React.FC<ContentBlockProps> = ({
         onSelect(block.id);
       }}
     >
-      {renderBlock(
-        block,
-        isSelected,
-        onSelect,
-        handleContentChange,
-        layoutId,
-        columnId
-      )}
+      {renderBlock(block, handleContentChange)}
     </BlockContainer>
   );
 };

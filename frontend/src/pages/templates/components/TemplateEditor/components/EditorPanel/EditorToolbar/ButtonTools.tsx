@@ -7,9 +7,11 @@ import {
   selectedLayoutIdAtom,
 } from "../../../atoms";
 import type { ButtonBlock } from "../../../types";
+import DeleteButton from "./DeleteButton";
 
 const ToolSection = styled.div`
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   padding-bottom: 8px;
 
@@ -23,10 +25,22 @@ const ToolGroup = styled.div`
   display: flex;
   gap: 4px;
   align-items: center;
+  min-height: 32px;
+  flex-shrink: 0;
 
   &:not(:last-child) {
     padding-right: 8px;
     border-right: 1px solid #e0e0e0;
+  }
+
+  @media (max-width: 768px) {
+    &:not(:last-child) {
+      border-right: none;
+      border-bottom: 1px solid #e0e0e0;
+      padding-right: 0;
+      padding-bottom: 8px;
+      width: 100%;
+    }
   }
 `;
 
@@ -182,6 +196,10 @@ const ButtonTools = () => {
           <option value="center">가운데</option>
           <option value="right">오른쪽</option>
         </select>
+      </ToolGroup>
+
+      <ToolGroup>
+        <DeleteButton />
       </ToolGroup>
     </ToolSection>
   );

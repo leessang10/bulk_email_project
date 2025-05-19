@@ -1,13 +1,11 @@
 import { useAtom } from "jotai";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import styled from "styled-components";
 import {
-  addBlockAtom,
   editorStateAtom,
   selectedComponentBlockIdAtom,
-} from "../../../atoms";
+} from "../../../atoms/editor";
 import AddLayoutButton from "./AddLayoutButton";
-import FloatingMenu from "./FloatingMenu";
 import LayoutBlock from "./LayoutBlock";
 
 const Container = styled.div`
@@ -20,88 +18,29 @@ const Container = styled.div`
   width: 100%;
 `;
 
-interface FloatingMenuState {
-  type: "layout" | "block";
-  x: number;
-  y: number;
-  layoutId?: string;
-  columnBlockId?: string;
-}
-
 const EditorCanvas = () => {
   const [editorState] = useAtom(editorStateAtom);
   const [selectedBlockId, setSelectedBlockId] = useAtom(
     selectedComponentBlockIdAtom
   );
-  const [menuState, setMenuState] = useState<FloatingMenuState | null>(null);
-  const [, addBlock] = useAtom(addBlockAtom);
 
   // 캔버스 영역 클릭 시 선택 해제
   const handleCanvasClick = useCallback(() => {
     setSelectedBlockId(null);
   }, [setSelectedBlockId]);
 
-  const handleAddBlockClick = useCallback(
-    (e: React.MouseEvent, layoutId: string, columnBlockId: string) => {
-      e.stopPropagation();
-      console.log("Adding block to:", { layoutId, columnBlockId });
-      setMenuState({
-        type: "block",
-        x: e.clientX,
-        y: e.clientY,
-        layoutId,
-        columnBlockId,
-      });
-    },
-    []
-  );
-
-  const handleMenuSelect = useCallback(
-    (option: { type: string; value: string }) => {
-      console.log("Menu selected:", { option, menuState });
-      if (menuState?.layoutId && menuState?.columnBlockId) {
-        console.log("Adding block with:", {
-          layoutId: menuState.layoutId,
-          columnBlockId: menuState.columnBlockId,
-          blockType: option.value,
-        });
-        addBlock({
-          layoutId: menuState.layoutId,
-          columnBlockId: menuState.columnBlockId,
-          blockType: option.value,
-        });
-      }
-      setMenuState(null);
-    },
-    [menuState, addBlock]
-  );
-
-  const handleMenuClose = useCallback(() => {
-    setMenuState(null);
-  }, []);
-
   return (
     <Container onClick={handleCanvasClick}>
-      {Object.values(editorState.layouts)
-        .sort((a, b) => a.order - b.order)
-        .map((layout) => (
+      {Object.entries(editorState.layouts)
+        .sort(([, a], [, b]) => a.order - b.order)
+        .map(([layoutId]) => (
           <LayoutBlock
-            key={layout.id}
-            layoutId={layout.id}
+            key={layoutId}
+            layoutId={layoutId}
             selectedBlockId={selectedBlockId}
-            onAddBlock={handleAddBlockClick}
           />
         ))}
       <AddLayoutButton />
-      {menuState && (
-        <FloatingMenu
-          type={menuState.type}
-          x={menuState.x}
-          y={menuState.y}
-          onSelect={handleMenuSelect}
-          onClose={handleMenuClose}
-        />
-      )}
     </Container>
   );
 };

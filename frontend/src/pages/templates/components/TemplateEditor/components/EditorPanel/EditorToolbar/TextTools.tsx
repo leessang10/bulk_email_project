@@ -18,6 +18,7 @@ import {
   selectedLayoutIdAtom,
 } from "../../../atoms";
 import type { TextBlock } from "../../../types";
+import DeleteButton from "./DeleteButton";
 
 const ToolSection = styled.div<{ disabled?: boolean }>`
   display: flex;
@@ -253,6 +254,10 @@ const TextTools = () => {
           value={style.color}
           onChange={(e) => updateStyle({ color: e.target.value })}
         />
+      </ToolGroup>
+
+      <ToolGroup>
+        <DeleteButton />
       </ToolGroup>
     </ToolSection>
   );

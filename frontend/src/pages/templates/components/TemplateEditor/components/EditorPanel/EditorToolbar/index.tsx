@@ -12,6 +12,7 @@ import TextTools from "./TextTools";
 
 const Container = styled.div`
   width: 100%;
+  height: 60px;
   background: white;
   border-bottom: 1px solid #e0e0e0;
   padding: 12px;
@@ -41,7 +42,7 @@ const EditorToolbar = () => {
 
   return (
     <Container>
-      <TextTools />
+      {selectedBlock?.type === "text" && <TextTools />}
       {selectedBlock?.type === "button" && <ButtonTools />}
       {selectedBlock?.type === "image" && <ImageTools />}
     </Container>
