@@ -1,9 +1,11 @@
 import { useAtom } from "jotai";
-import { nanoid } from "nanoid";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import styled from "styled-components";
-import { editorTreeAtom, selectedBlockIdAtom } from "../../../atoms";
-import type { Block, LayoutBlock as LayoutBlockType } from "../../../types";
+import {
+  addBlockAtom,
+  editorStateAtom,
+  selectedComponentBlockIdAtom,
+} from "../../../atoms";
 import AddLayoutButton from "./AddLayoutButton";
 import FloatingMenu from "./FloatingMenu";
 import LayoutBlock from "./LayoutBlock";
@@ -22,112 +24,74 @@ interface FloatingMenuState {
   type: "layout" | "block";
   x: number;
   y: number;
-  columnPath?: { layoutId: string; columnIndex: number };
+  layoutId?: string;
+  columnBlockId?: string;
 }
 
-const createBlock = (type: string, id: string, parentId: string): Block => {
-  switch (type) {
-    case "text":
-      return {
-        id,
-        type: "text",
-        parentId,
-        content: "텍스트를 입력하세요",
-        style: {},
-      } as Block;
-    case "button":
-      return {
-        id,
-        type: "button",
-        parentId,
-        label: "버튼",
-        url: "#",
-        style: {},
-      } as Block;
-    case "image":
-      return {
-        id,
-        type: "image",
-        parentId,
-        src: "https://via.placeholder.com/300x200",
-        alt: "이미지",
-        width: "100%",
-      } as Block;
-    default:
-      throw new Error(`Unknown block type: ${type}`);
-  }
-};
-
 const EditorCanvas = () => {
-  const [tree, setTree] = useAtom(editorTreeAtom);
-  const [selectedBlockId, setSelectedBlockId] = useAtom(selectedBlockIdAtom);
+  const [editorState] = useAtom(editorStateAtom);
+  const [selectedBlockId, setSelectedBlockId] = useAtom(
+    selectedComponentBlockIdAtom
+  );
   const [menuState, setMenuState] = useState<FloatingMenuState | null>(null);
+  const [, addBlock] = useAtom(addBlockAtom);
 
   // 캔버스 영역 클릭 시 선택 해제
-  const handleCanvasClick = () => {
+  const handleCanvasClick = useCallback(() => {
     setSelectedBlockId(null);
-  };
+  }, [setSelectedBlockId]);
 
-  const handleAddBlockClick = (
-    e: React.MouseEvent,
-    layoutId: string,
-    columnIndex: number
-  ) => {
-    e.stopPropagation();
-    setMenuState({
-      type: "block",
-      x: e.clientX,
-      y: e.clientY,
-      columnPath: { layoutId, columnIndex },
-    });
-  };
+  const handleAddBlockClick = useCallback(
+    (e: React.MouseEvent, layoutId: string, columnBlockId: string) => {
+      e.stopPropagation();
+      console.log("Adding block to:", { layoutId, columnBlockId });
+      setMenuState({
+        type: "block",
+        x: e.clientX,
+        y: e.clientY,
+        layoutId,
+        columnBlockId,
+      });
+    },
+    []
+  );
 
-  const handleMenuSelect = (option: { type: string; value: string }) => {
-    if (menuState?.columnPath) {
-      const { layoutId, columnIndex } = menuState.columnPath;
-      const newBlockId = nanoid();
-      const layout = tree.blocks[layoutId] as LayoutBlockType;
+  const handleMenuSelect = useCallback(
+    (option: { type: string; value: string }) => {
+      console.log("Menu selected:", { option, menuState });
+      if (menuState?.layoutId && menuState?.columnBlockId) {
+        console.log("Adding block with:", {
+          layoutId: menuState.layoutId,
+          columnBlockId: menuState.columnBlockId,
+          blockType: option.value,
+        });
+        addBlock({
+          layoutId: menuState.layoutId,
+          columnBlockId: menuState.columnBlockId,
+          blockType: option.value,
+        });
+      }
+      setMenuState(null);
+    },
+    [menuState, addBlock]
+  );
 
-      setTree((prev) => ({
-        ...prev,
-        blocks: {
-          ...prev.blocks,
-          [newBlockId]: createBlock(option.value, newBlockId, layoutId),
-          [layoutId]: {
-            ...layout,
-            children: [
-              ...layout.children,
-              { blockId: newBlockId, columnIndex },
-            ],
-          },
-        },
-      }));
-      setSelectedBlockId(newBlockId);
-    }
+  const handleMenuClose = useCallback(() => {
     setMenuState(null);
-  };
-
-  const handleMenuClose = () => {
-    setMenuState(null);
-  };
+  }, []);
 
   return (
     <Container onClick={handleCanvasClick}>
-      {tree.rootIds.map((id) => {
-        const block = tree.blocks[id];
-        if (block.type === "layout") {
-          return (
-            <LayoutBlock
-              key={block.id}
-              block={block as LayoutBlockType}
-              onAddBlock={handleAddBlockClick}
-              selectedBlockId={selectedBlockId}
-              onSelectBlock={setSelectedBlockId}
-            />
-          );
-        }
-        return null;
-      })}
+      {Object.values(editorState.layouts)
+        .sort((a, b) => a.order - b.order)
+        .map((layout) => (
+          <LayoutBlock
+            key={layout.id}
+            layoutId={layout.id}
+            selectedBlockId={selectedBlockId}
+            onAddBlock={handleAddBlockClick}
+          />
+        ))}
       <AddLayoutButton />
       {menuState && (
         <FloatingMenu

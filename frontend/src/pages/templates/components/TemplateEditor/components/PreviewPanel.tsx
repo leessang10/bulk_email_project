@@ -3,17 +3,17 @@ import { useEffect } from "react";
 import { MdDesktopWindows, MdPhoneAndroid } from "react-icons/md";
 import styled from "styled-components";
 import {
-  editorTreeAtom,
+  editorStateAtom,
   templateContentAtom,
   type ViewMode,
   viewModeAtom,
 } from "../atoms";
 import { mockTemplateContent } from "../mockData";
 import type {
-  Block,
   ButtonBlock,
+  ComponentBlock,
+  EditorState,
   ImageBlock,
-  LayoutBlock,
   TextBlock,
 } from "../types";
 
@@ -96,11 +96,11 @@ const PreviewContent = styled.div`
   overflow: auto;
 `;
 
-const convertBlockToHtml = (block: Block): string => {
+const convertComponentBlockToHtml = (block: ComponentBlock): string => {
   switch (block.type) {
     case "text": {
       const textBlock = block as TextBlock;
-      const style = textBlock.style;
+      const style = textBlock.style || {};
       return `
         <div style="
           ${style.bold ? "font-weight: bold;" : ""}
@@ -109,6 +109,8 @@ const convertBlockToHtml = (block: Block): string => {
           ${style.fontSize ? `font-size: ${style.fontSize};` : ""}
           ${style.color ? `color: ${style.color};` : ""}
           ${style.textAlign ? `text-align: ${style.textAlign};` : ""}
+          padding: 8px;
+          min-height: 24px;
         ">
           ${textBlock.content}
         </div>
@@ -116,36 +118,60 @@ const convertBlockToHtml = (block: Block): string => {
     }
     case "button": {
       const buttonBlock = block as ButtonBlock;
-      const style = buttonBlock.style;
+      const style = buttonBlock.style || {};
       return `
-        <a href="${buttonBlock.url}" style="
-          display: inline-block;
-          padding: ${style.padding || "8px 16px"};
-          background-color: ${style.backgroundColor || "#007bff"};
-          color: ${style.color || "#ffffff"};
-          border-radius: ${style.borderRadius || "4px"};
-          text-decoration: none;
-          font-size: 14px;
-          line-height: 1.5;
-          text-align: center;
+        <div style="
+          width: 100%;
+          display: flex;
+          justify-content: ${
+            style.align === "left"
+              ? "flex-start"
+              : style.align === "right"
+              ? "flex-end"
+              : "center"
+          };
         ">
-          ${buttonBlock.label}
-        </a>
+          <a href="${buttonBlock.url}" style="
+            display: inline-block;
+            padding: ${style.padding || "8px 16px"};
+            background-color: ${style.backgroundColor || "#007bff"};
+            color: ${style.color || "#ffffff"};
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: center;
+          ">
+            ${buttonBlock.label}
+          </a>
+        </div>
       `;
     }
     case "image": {
       const imageBlock = block as ImageBlock;
       return `
-        <img
-          src="${imageBlock.src}"
-          alt="${imageBlock.alt || ""}"
-          style="
-            max-width: 100%;
-            height: auto;
-            ${imageBlock.width ? `width: ${imageBlock.width};` : ""}
-            display: block;
-          "
-        />
+        <div style="
+          width: 100%;
+          display: flex;
+          justify-content: ${
+            imageBlock.align === "left"
+              ? "flex-start"
+              : imageBlock.align === "right"
+              ? "flex-end"
+              : "center"
+          };
+        ">
+          <img
+            src="${imageBlock.src}"
+            alt="${imageBlock.alt || ""}"
+            style="
+              max-width: 100%;
+              height: auto;
+              ${imageBlock.width ? `width: ${imageBlock.width};` : ""}
+              display: block;
+            "
+          />
+        </div>
       `;
     }
     default:
@@ -153,27 +179,25 @@ const convertBlockToHtml = (block: Block): string => {
   }
 };
 
-const convertTreeToHtml = (tree: {
-  blocks: Record<string, Block>;
-  rootIds: string[];
-}): string => {
-  const renderLayout = (layoutBlock: LayoutBlock): string => {
-    const columnWidth = 100 / layoutBlock.columns;
-    const columns = Array.from({ length: layoutBlock.columns }).map(
-      (_, columnIndex) => {
-        const columnBlocks = layoutBlock.children
-          .filter((child) => child.columnIndex === columnIndex)
-          .map((child) => tree.blocks[child.blockId])
-          .map(convertBlockToHtml)
-          .join("");
+const convertStateToHtml = (state: EditorState): string => {
+  const renderLayout = (layoutId: string): string => {
+    const layout = state.layouts[layoutId];
+    const columnBlocks = Object.values(layout.columnBlocks).sort(
+      (a, b) => a.order - b.order
+    );
+    const columnWidth = 100 / columnBlocks.length;
 
-        return `
+    const columns = columnBlocks.map((columnBlock) => {
+      const columnContent = columnBlock.componentBlock
+        ? convertComponentBlockToHtml(columnBlock.componentBlock)
+        : "";
+
+      return `
         <td style="width: ${columnWidth}%; padding: 16px; vertical-align: top;">
-          ${columnBlocks}
+          ${columnContent}
         </td>
       `;
-      }
-    );
+    });
 
     return `
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
@@ -184,30 +208,25 @@ const convertTreeToHtml = (tree: {
     `;
   };
 
-  return tree.rootIds
-    .map((id) => {
-      const block = tree.blocks[id];
-      if (block.type === "layout") {
-        return renderLayout(block as LayoutBlock);
-      }
-      return convertBlockToHtml(block);
-    })
+  return Object.values(state.layouts)
+    .sort((a, b) => a.order - b.order)
+    .map((layout) => renderLayout(layout.id))
     .join("");
 };
 
 const PreviewPanel = () => {
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
-  const [tree] = useAtom(editorTreeAtom);
+  const [editorState] = useAtom(editorStateAtom);
   const [, setTemplateContent] = useAtom(templateContentAtom);
 
-  // 에디터 트리가 변경될 때마다 HTML 업데이트
+  // 에디터 상태가 변경될 때마다 HTML 업데이트
   useEffect(() => {
-    const html = convertTreeToHtml(tree);
+    const html = convertStateToHtml(editorState);
     setTemplateContent({
       html,
       style: mockTemplateContent.style, // 기본 스타일 유지
     });
-  }, [tree, setTemplateContent]);
+  }, [editorState, setTemplateContent]);
 
   return (
     <Container>
@@ -235,7 +254,9 @@ const PreviewPanel = () => {
           <PreviewContent>
             <style>{mockTemplateContent.style}</style>
             <div
-              dangerouslySetInnerHTML={{ __html: convertTreeToHtml(tree) }}
+              dangerouslySetInnerHTML={{
+                __html: convertStateToHtml(editorState),
+              }}
             />
           </PreviewContent>
         </PreviewFrame>

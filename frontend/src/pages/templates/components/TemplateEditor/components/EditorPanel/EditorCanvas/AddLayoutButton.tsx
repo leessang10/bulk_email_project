@@ -3,8 +3,8 @@ import { nanoid } from "nanoid";
 import React from "react";
 import { MdViewColumn } from "react-icons/md";
 import styled from "styled-components";
-import { editorTreeAtom } from "../../../atoms";
-import type { EditorTree, LayoutBlock } from "../../../types";
+import { editorStateAtom } from "../../../atoms";
+import type { EditorState } from "../../../types";
 import FloatingMenu from "./FloatingMenu";
 
 const Button = styled.button`
@@ -37,7 +37,7 @@ const LAYOUT_OPTIONS = [
 ];
 
 const AddLayoutButton = () => {
-  const [, setTree] = useAtom(editorTreeAtom);
+  const [editorState, setEditorState] = useAtom(editorStateAtom);
   const [menuState, setMenuState] = React.useState<MenuState | null>(null);
 
   const handleClick = (e: React.MouseEvent) => {
@@ -49,20 +49,42 @@ const AddLayoutButton = () => {
 
   const handleMenuSelect = (option: { type: string; value: string }) => {
     const newLayoutId = nanoid();
-    setTree((prev: EditorTree) => ({
-      ...prev,
-      blocks: {
-        ...prev.blocks,
-        [newLayoutId]: {
-          id: newLayoutId,
-          type: "layout",
-          parentId: null,
-          columns: Number(option.value),
-          children: [],
-        } as LayoutBlock,
-      },
-      rootIds: [...prev.rootIds, newLayoutId],
-    }));
+    const columnsCount = Number(option.value);
+
+    // 새로운 컬럼 블록들 생성
+    const newColumnBlocks: EditorState["layouts"][string]["columnBlocks"] = {};
+    Array.from({ length: columnsCount }).forEach((_, index) => {
+      const columnId = nanoid();
+      newColumnBlocks[columnId] = {
+        id: columnId,
+        order: index,
+        layoutId: newLayoutId,
+        componentBlock: null,
+      };
+    });
+
+    setEditorState((prev: EditorState) => {
+      // 새 레이아웃의 순서는 현재 레이아웃들 중 가장 큰 order + 1
+      const maxOrder = Object.values(prev.layouts).reduce(
+        (max, layout) => Math.max(max, layout.order),
+        -1
+      );
+
+      const newLayout: EditorState["layouts"][string] = {
+        id: newLayoutId,
+        order: maxOrder + 1,
+        columnBlocks: newColumnBlocks,
+      };
+
+      return {
+        ...prev,
+        layouts: {
+          ...prev.layouts,
+          [newLayoutId]: newLayout,
+        },
+      };
+    });
+
     setMenuState(null);
   };
 

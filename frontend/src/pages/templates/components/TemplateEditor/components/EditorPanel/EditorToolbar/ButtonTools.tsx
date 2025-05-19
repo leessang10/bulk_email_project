@@ -1,6 +1,11 @@
 import { useAtom } from "jotai";
 import styled from "styled-components";
-import { editorTreeAtom, selectedBlockAtom } from "../../../atoms";
+import {
+  editorStateAtom,
+  selectedColumnBlockIdAtom,
+  selectedComponentBlockIdAtom,
+  selectedLayoutIdAtom,
+} from "../../../atoms";
 import type { ButtonBlock } from "../../../types";
 
 const ToolSection = styled.div`
@@ -63,20 +68,40 @@ const Label = styled.label`
 `;
 
 const ButtonTools = () => {
-  const [selectedBlock] = useAtom(selectedBlockAtom);
-  const [tree, setTree] = useAtom(editorTreeAtom);
+  const [selectedBlockId] = useAtom(selectedComponentBlockIdAtom);
+  const [editorState, setEditorState] = useAtom(editorStateAtom);
+  const [selectedLayoutId] = useAtom(selectedLayoutIdAtom);
+  const [selectedColumnId] = useAtom(selectedColumnBlockIdAtom);
 
-  const buttonBlock = selectedBlock as ButtonBlock;
+  const buttonBlock =
+    selectedLayoutId && selectedColumnId && selectedBlockId
+      ? (editorState.layouts[selectedLayoutId].columnBlocks[selectedColumnId]
+          .componentBlock as ButtonBlock)
+      : null;
+
+  if (!buttonBlock) return null;
+
   const style = buttonBlock.style;
 
   const updateButton = (updates: Partial<ButtonBlock>) => {
-    setTree((prev) => ({
+    if (!selectedLayoutId || !selectedColumnId) return;
+
+    setEditorState((prev) => ({
       ...prev,
-      blocks: {
-        ...prev.blocks,
-        [buttonBlock.id]: {
-          ...buttonBlock,
-          ...updates,
+      layouts: {
+        ...prev.layouts,
+        [selectedLayoutId]: {
+          ...prev.layouts[selectedLayoutId],
+          columnBlocks: {
+            ...prev.layouts[selectedLayoutId].columnBlocks,
+            [selectedColumnId]: {
+              ...prev.layouts[selectedLayoutId].columnBlocks[selectedColumnId],
+              componentBlock: {
+                ...buttonBlock,
+                ...updates,
+              },
+            },
+          },
         },
       },
     }));
@@ -141,15 +166,22 @@ const ButtonTools = () => {
       </ToolGroup>
 
       <ToolGroup>
-        <Label>모서리</Label>
-        <Input
-          type="text"
-          value={style.borderRadius || ""}
+        <Label>정렬</Label>
+        <select
+          value={style.align || "center"}
           onChange={(e) =>
-            updateButton({ style: { ...style, borderRadius: e.target.value } })
+            updateButton({
+              style: {
+                ...style,
+                align: e.target.value as "left" | "center" | "right",
+              },
+            })
           }
-          placeholder="예: 4px"
-        />
+        >
+          <option value="left">왼쪽</option>
+          <option value="center">가운데</option>
+          <option value="right">오른쪽</option>
+        </select>
       </ToolGroup>
     </ToolSection>
   );

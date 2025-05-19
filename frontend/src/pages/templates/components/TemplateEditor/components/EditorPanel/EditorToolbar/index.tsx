@@ -1,6 +1,11 @@
 import { useAtom } from "jotai";
 import styled from "styled-components";
-import { selectedBlockAtom } from "../../../atoms";
+import {
+  editorStateAtom,
+  selectedColumnBlockIdAtom,
+  selectedComponentBlockIdAtom,
+  selectedLayoutIdAtom,
+} from "../../../atoms";
 import ButtonTools from "./ButtonTools";
 import ImageTools from "./ImageTools";
 import TextTools from "./TextTools";
@@ -16,17 +21,29 @@ const Container = styled.div`
 `;
 
 const EditorToolbar = () => {
-  const [selectedBlock] = useAtom(selectedBlockAtom);
+  const [selectedBlockId] = useAtom(selectedComponentBlockIdAtom);
+  const [editorState] = useAtom(editorStateAtom);
+  const [selectedLayoutId] = useAtom(selectedLayoutIdAtom);
+  const [selectedColumnId] = useAtom(selectedColumnBlockIdAtom);
+
+  const selectedBlock =
+    selectedLayoutId && selectedColumnId && selectedBlockId
+      ? editorState.layouts[selectedLayoutId].columnBlocks[selectedColumnId]
+          .componentBlock
+      : null;
+
+  console.log("EditorToolbar state:", {
+    selectedBlockId,
+    selectedLayoutId,
+    selectedColumnId,
+    selectedBlock,
+  });
 
   return (
     <Container>
       <TextTools />
-      {selectedBlock && (
-        <>
-          {selectedBlock.type === "button" && <ButtonTools />}
-          {selectedBlock.type === "image" && <ImageTools />}
-        </>
-      )}
+      {selectedBlock?.type === "button" && <ButtonTools />}
+      {selectedBlock?.type === "image" && <ImageTools />}
     </Container>
   );
 };

@@ -11,13 +11,20 @@ import {
   MdFormatUnderlined,
 } from "react-icons/md";
 import styled from "styled-components";
-import { editorTreeAtom, selectedBlockAtom } from "../../../atoms";
+import {
+  editorStateAtom,
+  selectedColumnBlockIdAtom,
+  selectedComponentBlockIdAtom,
+  selectedLayoutIdAtom,
+} from "../../../atoms";
 import type { TextBlock } from "../../../types";
 
-const ToolSection = styled.div`
+const ToolSection = styled.div<{ disabled?: boolean }>`
   display: flex;
   gap: 8px;
   padding-bottom: 8px;
+  opacity: ${(props) => (props.disabled ? 0.5 : 1)};
+  pointer-events: ${(props) => (props.disabled ? "none" : "auto")};
 
   &:not(:last-child) {
     border-bottom: 1px solid #e0e0e0;
@@ -54,19 +61,6 @@ const ToolButton = styled.button<{ active?: boolean }>`
   svg {
     width: 20px;
     height: 20px;
-  }
-`;
-
-const Input = styled.input`
-  padding: 4px 8px;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  font-size: 14px;
-  width: 120px;
-
-  &:focus {
-    outline: none;
-    border-color: #007bff;
   }
 `;
 
@@ -115,29 +109,66 @@ const FONT_SIZES = [
 ];
 
 const TextTools = () => {
-  const [selectedBlock] = useAtom(selectedBlockAtom);
-  const [tree, setTree] = useAtom(editorTreeAtom);
+  const [editorState, setEditorState] = useAtom(editorStateAtom);
+  const [selectedLayoutId] = useAtom(selectedLayoutIdAtom);
+  const [selectedColumnId] = useAtom(selectedColumnBlockIdAtom);
+  const [selectedBlockId] = useAtom(selectedComponentBlockIdAtom);
 
-  const textBlock = selectedBlock as TextBlock | null;
-  const style = {
+  const selectedBlock =
+    selectedLayoutId && selectedColumnId && selectedBlockId
+      ? editorState.layouts[selectedLayoutId].columnBlocks[selectedColumnId]
+          .componentBlock
+      : null;
+
+  const textBlock =
+    selectedBlock?.type === "text" ? (selectedBlock as TextBlock) : null;
+
+  const style = textBlock?.style || {
     fontSize: "14px",
     color: "#000000",
-    ...textBlock?.style,
+    textAlign: "left" as const,
   };
 
   const updateStyle = (updates: Partial<TextBlock["style"]>) => {
-    if (!textBlock) return;
+    if (!textBlock || !selectedLayoutId || !selectedColumnId) return;
 
-    setTree((prev) => ({
-      ...prev,
-      blocks: {
-        ...prev.blocks,
-        [textBlock.id]: {
-          ...textBlock,
-          style: { ...textBlock.style, ...updates },
+    const updatedStyle = {
+      ...textBlock.style,
+      ...updates,
+    };
+
+    console.log("Updating style:", {
+      selectedLayoutId,
+      selectedColumnId,
+      textBlock,
+      updatedStyle,
+    });
+
+    setEditorState((prev) => {
+      const newState = {
+        ...prev,
+        layouts: {
+          ...prev.layouts,
+          [selectedLayoutId]: {
+            ...prev.layouts[selectedLayoutId],
+            columnBlocks: {
+              ...prev.layouts[selectedLayoutId].columnBlocks,
+              [selectedColumnId]: {
+                ...prev.layouts[selectedLayoutId].columnBlocks[
+                  selectedColumnId
+                ],
+                componentBlock: {
+                  ...textBlock,
+                  style: updatedStyle,
+                },
+              },
+            },
+          },
         },
-      },
-    }));
+      };
+      console.log("New state:", newState);
+      return newState;
+    });
   };
 
   return (

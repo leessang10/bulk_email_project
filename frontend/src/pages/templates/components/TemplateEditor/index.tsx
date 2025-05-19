@@ -13,6 +13,8 @@ const Container = styled.div`
 `;
 
 const TemplateEditor = () => {
+  console.log("TemplateEditor render");
+
   return (
     <Provider>
       <DndProvider backend={HTML5Backend}>

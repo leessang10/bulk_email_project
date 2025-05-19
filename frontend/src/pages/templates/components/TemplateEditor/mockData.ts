@@ -1,63 +1,125 @@
+import type { EditorState } from "./types";
+
 export const mockTemplateContent = {
-  html: `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <header style="background: #f8f9fa; padding: 20px; text-align: center;">
-        <img src="https://via.placeholder.com/150x50" alt="Company Logo" style="max-width: 150px;" />
-      </header>
-      
-      <main style="padding: 20px;">
-        <h1 style="color: #333; font-size: 24px; margin-bottom: 20px;">안녕하세요, {{name}}님!</h1>
-        
-        <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-          저희 서비스를 이용해 주셔서 감사합니다. 이번 주 특별 프로모션 소식을 전해드립니다.
-        </p>
-        
-        <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-          <h2 style="color: #333; font-size: 20px; margin-bottom: 15px;">이번 주 특가 상품</h2>
-          <ul style="color: #666; padding-left: 20px;">
-            <li style="margin-bottom: 10px;">상품 A - 30% 할인</li>
-            <li style="margin-bottom: 10px;">상품 B - 2+1 이벤트</li>
-            <li style="margin-bottom: 10px;">상품 C - 무료 배송</li>
-          </ul>
-        </div>
-        
-        <a href="#" style="display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin-bottom: 20px;">
-          자세히 보기
-        </a>
-        
-        <p style="color: #666; line-height: 1.6; font-size: 14px;">
-          본 메일은 발신 전용입니다. 문의사항이 있으시면 고객센터를 이용해 주세요.
-        </p>
-      </main>
-      
-      <footer style="background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666;">
-        <p style="margin-bottom: 10px;">
-          © 2024 Your Company. All rights reserved.
-        </p>
-        <p>
-          서울특별시 강남구 테헤란로 123 | 고객센터: 02-123-4567
-        </p>
-      </footer>
-    </div>
-  `,
   style: `
     body {
       margin: 0;
       padding: 0;
-      background-color: #ffffff;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
     }
     
-    img {
-      max-width: 100%;
-      height: auto;
+    table {
+      width: 100%;
+      border-collapse: collapse;
     }
     
-    a {
-      transition: opacity 0.2s ease;
-    }
-    
-    a:hover {
-      opacity: 0.8;
+    td {
+      vertical-align: top;
     }
   `,
+};
+
+export const mockEditorState: EditorState = {
+  layouts: {
+    "layout-1": {
+      id: "layout-1",
+      columns: [
+        {
+          id: "column-1",
+          layoutId: "layout-1",
+          componentBlockId: "text-1",
+        },
+      ],
+    },
+    "layout-2": {
+      id: "layout-2",
+      columns: [
+        {
+          id: "column-2",
+          layoutId: "layout-2",
+          componentBlockId: "image-1",
+        },
+        {
+          id: "column-3",
+          layoutId: "layout-2",
+          componentBlockId: "text-2",
+        },
+      ],
+    },
+    "layout-3": {
+      id: "layout-3",
+      columns: [
+        {
+          id: "column-4",
+          layoutId: "layout-3",
+          componentBlockId: "button-1",
+        },
+      ],
+    },
+  },
+  columns: {
+    "column-1": {
+      id: "column-1",
+      layoutId: "layout-1",
+      componentBlockId: "text-1",
+    },
+    "column-2": {
+      id: "column-2",
+      layoutId: "layout-2",
+      componentBlockId: "image-1",
+    },
+    "column-3": {
+      id: "column-3",
+      layoutId: "layout-2",
+      componentBlockId: "text-2",
+    },
+    "column-4": {
+      id: "column-4",
+      layoutId: "layout-3",
+      componentBlockId: "button-1",
+    },
+  },
+  componentBlocks: {
+    "text-1": {
+      id: "text-1",
+      type: "text",
+      content: "안녕하세요! 이메일 템플릿 에디터입니다.",
+      style: {
+        bold: true,
+        fontSize: "24px",
+        textAlign: "center",
+      },
+    },
+    "image-1": {
+      id: "image-1",
+      type: "image",
+      src: "https://via.placeholder.com/300x200",
+      alt: "샘플 이미지",
+      width: "100%",
+    },
+    "text-2": {
+      id: "text-2",
+      type: "text",
+      content:
+        "이미지 옆에 있는 텍스트입니다. 2단 레이아웃의 예시를 보여줍니다.",
+      style: {
+        fontSize: "16px",
+      },
+    },
+    "button-1": {
+      id: "button-1",
+      type: "button",
+      label: "자세히 보기",
+      url: "#",
+      style: {
+        backgroundColor: "#007bff",
+        color: "#ffffff",
+        padding: "12px 24px",
+        borderRadius: "6px",
+      },
+    },
+  },
+  layoutOrder: ["layout-1", "layout-2", "layout-3"],
 };
