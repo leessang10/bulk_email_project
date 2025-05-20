@@ -19,7 +19,7 @@ TemplateEditor/
 ├── mockData.ts      # 테스트용 더미 데이터
 └── components/      # 하위 컴포넌트
     ├── EditorPanel  # 편집 패널
-    └── PreviewPanel # 미리보기 패널
+    └── Index # 미리보기 패널
 ```
 
 ## 컴포넌트 구조

@@ -1,11 +1,11 @@
 import { useAtom } from "jotai";
 import styled from "styled-components";
+import { editorStateAtom } from "../../../atoms/editor";
 import {
-  editorStateAtom,
   selectedColumnBlockIdAtom,
   selectedComponentBlockIdAtom,
   selectedLayoutIdAtom,
-} from "../../../atoms";
+} from "../../../atoms/selection";
 import ButtonTools from "./ButtonTools";
 import ImageTools from "./ImageTools";
 import TextTools from "./TextTools";
@@ -22,10 +22,10 @@ const Container = styled.div`
 `;
 
 const EditorToolbar = () => {
-  const [selectedBlockId] = useAtom(selectedComponentBlockIdAtom);
   const [editorState] = useAtom(editorStateAtom);
   const [selectedLayoutId] = useAtom(selectedLayoutIdAtom);
   const [selectedColumnId] = useAtom(selectedColumnBlockIdAtom);
+  const [selectedBlockId] = useAtom(selectedComponentBlockIdAtom);
 
   const selectedBlock =
     selectedLayoutId && selectedColumnId && selectedBlockId

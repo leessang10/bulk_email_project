@@ -7,6 +7,7 @@ import type {
   ImageBlock,
   TextBlock,
 } from "../types";
+import { templateContentAtom } from "./atoms";
 import { editorStateAtom } from "./editor";
 
 // HTML 변환 유틸리티 atom

@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { addBlockAtom } from "./editor";
+import { addComponentBlockAtom } from "./componentBlock";
 
 // 블록 메뉴 상태 타입
 export interface BlockMenuState {
@@ -33,7 +33,7 @@ export const handleBlockMenuSelectAtom = atom(
     const menuState = get(blockMenuStateAtom);
 
     if (menuState?.layoutId && menuState.columnBlockId) {
-      set(addBlockAtom, {
+      set(addComponentBlockAtom, {
         layoutId: menuState.layoutId,
         columnBlockId: menuState.columnBlockId,
         blockType: option.value,

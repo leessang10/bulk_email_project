@@ -3,7 +3,8 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import styled from "styled-components";
 import EditorPanel from "./components/EditorPanel";
-import PreviewPanel from "./components/PreviewPanel";
+import PreviewPanel from './components/PreviewPanel';
+
 
 const Container = styled.div`
   display: flex;
@@ -13,11 +14,9 @@ const Container = styled.div`
 `;
 
 const TemplateEditor = () => {
-  console.log("TemplateEditor render");
-
   return (
     <Provider>
-      <DndProvider backend={HTML5Backend}>
+      <DndProvider backend={HTML5Backend} >
         <Container>
           <EditorPanel />
           <PreviewPanel />

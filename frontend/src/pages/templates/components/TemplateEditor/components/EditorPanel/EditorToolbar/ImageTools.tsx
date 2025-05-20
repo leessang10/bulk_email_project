@@ -3,10 +3,12 @@ import styled from "styled-components";
 import { uploadImageToS3 } from "../../../../../utils/s3Utils";
 import {
   editorStateAtom,
+} from "../../../atoms/editor";
+import {
   selectedColumnBlockIdAtom,
   selectedComponentBlockIdAtom,
   selectedLayoutIdAtom,
-} from "../../../atoms";
+} from '../../../atoms/selection.ts';
 import type { ImageBlock } from "../../../types";
 import DeleteButton from "./DeleteButton";
 

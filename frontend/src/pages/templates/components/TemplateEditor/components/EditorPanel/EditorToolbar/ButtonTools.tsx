@@ -1,91 +1,29 @@
 import { useAtom } from "jotai";
-import styled from "styled-components";
+
+
+import { updateComponentBlockAtom } from "../../../atoms/componentBlock";
+import { editorStateAtom } from "../../../atoms/editor";
 import {
-  editorStateAtom,
   selectedColumnBlockIdAtom,
-  selectedComponentBlockIdAtom,
-  selectedLayoutIdAtom,
-} from "../../../atoms";
+  selectedComponentBlockIdAtom, selectedLayoutIdAtom,
+} from '../../../atoms/selection';
 import type { ButtonBlock } from "../../../types";
 import DeleteButton from "./DeleteButton";
-
-const ToolSection = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding-bottom: 8px;
-
-  &:not(:last-child) {
-    border-bottom: 1px solid #e0e0e0;
-    margin-bottom: 8px;
-  }
-`;
-
-const ToolGroup = styled.div`
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  min-height: 32px;
-  flex-shrink: 0;
-
-  &:not(:last-child) {
-    padding-right: 8px;
-    border-right: 1px solid #e0e0e0;
-  }
-
-  @media (max-width: 768px) {
-    &:not(:last-child) {
-      border-right: none;
-      border-bottom: 1px solid #e0e0e0;
-      padding-right: 0;
-      padding-bottom: 8px;
-      width: 100%;
-    }
-  }
-`;
-
-const Input = styled.input`
-  padding: 4px 8px;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  font-size: 14px;
-  width: 120px;
-
-  &:focus {
-    outline: none;
-    border-color: #007bff;
-  }
-`;
-
-const ColorInput = styled.input`
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-
-  &::-webkit-color-swatch-wrapper {
-    padding: 0;
-  }
-
-  &::-webkit-color-swatch {
-    border: none;
-    border-radius: 4px;
-  }
-`;
-
-const Label = styled.label`
-  font-size: 14px;
-  color: #666;
-  margin-right: 4px;
-`;
+import {
+  ColorInput,
+  Input,
+  Label,
+  Select,
+  ToolGroup,
+  ToolSection,
+} from "./styles";
 
 const ButtonTools = () => {
   const [selectedBlockId] = useAtom(selectedComponentBlockIdAtom);
-  const [editorState, setEditorState] = useAtom(editorStateAtom);
+  const [editorState] = useAtom(editorStateAtom);
   const [selectedLayoutId] = useAtom(selectedLayoutIdAtom);
   const [selectedColumnId] = useAtom(selectedColumnBlockIdAtom);
+  const [, updateComponentBlock] = useAtom(updateComponentBlockAtom);
 
   const buttonBlock =
     selectedLayoutId && selectedColumnId && selectedBlockId
@@ -98,27 +36,8 @@ const ButtonTools = () => {
   const style = buttonBlock.style;
 
   const updateButton = (updates: Partial<ButtonBlock>) => {
-    if (!selectedLayoutId || !selectedColumnId) return;
-
-    setEditorState((prev) => ({
-      ...prev,
-      layouts: {
-        ...prev.layouts,
-        [selectedLayoutId]: {
-          ...prev.layouts[selectedLayoutId],
-          columnBlocks: {
-            ...prev.layouts[selectedLayoutId].columnBlocks,
-            [selectedColumnId]: {
-              ...prev.layouts[selectedLayoutId].columnBlocks[selectedColumnId],
-              componentBlock: {
-                ...buttonBlock,
-                ...updates,
-              },
-            },
-          },
-        },
-      },
-    }));
+    if (!selectedBlockId) return;
+    updateComponentBlock({ blockId: selectedBlockId, updates });
   };
 
   return (
@@ -181,7 +100,7 @@ const ButtonTools = () => {
 
       <ToolGroup>
         <Label>정렬</Label>
-        <select
+        <Select
           value={style.align || "center"}
           onChange={(e) =>
             updateButton({
@@ -195,7 +114,7 @@ const ButtonTools = () => {
           <option value="left">왼쪽</option>
           <option value="center">가운데</option>
           <option value="right">오른쪽</option>
-        </select>
+        </Select>
       </ToolGroup>
 
       <ToolGroup>

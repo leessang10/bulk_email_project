@@ -1,7 +1,7 @@
 import { useAtom } from "jotai";
 import { useDrag } from "react-dnd";
 import styled from "styled-components";
-import { updateBlockContentAtom } from "../../../../../../atoms/editor";
+import { updateComponentBlockAtom } from "../../../../../../atoms/componentBlock";
 import type {
   ButtonBlock,
   ComponentBlock,
@@ -169,11 +169,14 @@ const ContentBlock: React.FC<ContentBlockProps> = ({
   layoutId,
   columnId,
 }) => {
-  const [, updateBlockContent] = useAtom(updateBlockContentAtom);
+  const [, updateBlockContent] = useAtom(updateComponentBlockAtom);
 
   const handleContentChange = (content: string) => {
     if (block.type === "text") {
-      updateBlockContent({ layoutId, columnId, content });
+      updateBlockContent({
+        blockId: block.id,
+        updates: { content },
+      });
     }
   };
 

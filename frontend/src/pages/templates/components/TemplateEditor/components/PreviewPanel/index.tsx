@@ -7,15 +7,15 @@ import {
   templateContentAtom,
   type ViewMode,
   viewModeAtom,
-} from "../atoms";
-import { mockTemplateContent } from "../mockData";
+} from "../../atoms/editor.ts";
+import { mockTemplateContent } from "../../mockData.ts";
 import type {
   ButtonBlock,
   ComponentBlock,
   EditorState,
   ImageBlock,
   TextBlock,
-} from "../types";
+} from "../../types.ts";
 
 const Container = styled.div`
   width: 800px;

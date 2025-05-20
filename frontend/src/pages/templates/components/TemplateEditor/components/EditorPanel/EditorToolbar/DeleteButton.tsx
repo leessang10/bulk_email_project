@@ -1,6 +1,7 @@
 import { useAtom } from "jotai";
 import styled from "styled-components";
-import { deleteBlockAtom } from "../../../atoms";
+import { deleteComponentBlockAtom } from '../../../atoms/componentBlock.ts';
+
 
 const Container = styled.button`
   padding: 6px 12px;
@@ -22,7 +23,7 @@ const Container = styled.button`
 `;
 
 const DeleteButton = () => {
-  const [, deleteBlock] = useAtom(deleteBlockAtom);
+  const [, deleteBlock] = useAtom(deleteComponentBlockAtom);
 
   return (
     <Container onClick={() => deleteBlock()} title="삭제">

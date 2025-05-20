@@ -1,10 +1,8 @@
 import { useAtom } from "jotai";
 import { useCallback } from "react";
 import styled from "styled-components";
-import {
-  editorStateAtom,
-  selectedComponentBlockIdAtom,
-} from "../../../atoms/editor";
+import { editorStateAtom } from "../../../atoms/editor";
+import { selectedComponentBlockIdAtom } from "../../../atoms/selection";
 import AddLayoutButton from "./AddLayoutButton";
 import LayoutBlock from "./LayoutBlock";
 
