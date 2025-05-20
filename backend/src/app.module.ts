@@ -8,12 +8,14 @@ import { AppService } from './app.service';
 import { ConfigModule } from './config/config.module';
 import { DatabaseModule } from './database/database.module';
 import { EmailAddressGroupsModule } from './modules/email-address-groups/email-address-groups.module';
+import { EmailTemplatesModule } from './modules/email-templates/email-templates.module';
 import { UnsubscribesModule } from './modules/unsubscribes/unsubscribes.module';
 @Module({
   imports: [
     DatabaseModule,
     ConfigModule,
     EmailAddressGroupsModule,
+    EmailTemplatesModule,
     UnsubscribesModule,
     BullModule.forRoot({
       connection: {
