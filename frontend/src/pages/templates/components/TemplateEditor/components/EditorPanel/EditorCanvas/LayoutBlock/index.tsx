@@ -6,7 +6,6 @@ import ColumnBlock from "./ColumnBlock";
 
 interface LayoutBlockProps {
   layoutId: string;
-  selectedBlockId: string | null;
 }
 
 const Container = styled.div`
@@ -22,10 +21,7 @@ const Grid = styled.div<{ columns: number }>`
   padding: 16px;
 `;
 
-const LayoutBlock: React.FC<LayoutBlockProps> = ({
-  layoutId,
-  selectedBlockId,
-}) => {
+const LayoutBlock: React.FC<LayoutBlockProps> = ({ layoutId }) => {
   const [editorState] = useAtom(editorStateAtom);
   const layout = editorState.layouts[layoutId];
 
@@ -48,7 +44,6 @@ const LayoutBlock: React.FC<LayoutBlockProps> = ({
             layoutId={layoutId}
             columnId={columnBlock.id}
             componentBlock={componentBlock}
-            selectedBlockId={selectedBlockId}
           />
         ))}
       </Grid>

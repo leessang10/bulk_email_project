@@ -18,9 +18,10 @@ const Container = styled.div`
 
 const EditorCanvas = () => {
   const [editorState] = useAtom(editorStateAtom);
-  const [selectedBlockId, setSelectedBlockId] = useAtom(
+  const [, setSelectedBlockId] = useAtom(
     selectedComponentBlockIdAtom
   );
+
 
   // 캔버스 영역 클릭 시 선택 해제
   const handleCanvasClick = useCallback(() => {
@@ -35,7 +36,6 @@ const EditorCanvas = () => {
           <LayoutBlock
             key={layoutId}
             layoutId={layoutId}
-            selectedBlockId={selectedBlockId}
           />
         ))}
       <AddLayoutButton />

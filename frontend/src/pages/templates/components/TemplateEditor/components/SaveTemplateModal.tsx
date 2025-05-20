@@ -1,5 +1,8 @@
-import React from "react";
+import { useAtom } from "jotai";
+import React, { useState } from "react";
 import styled from "styled-components";
+import { emailTemplatesApi } from "../../../api/templates";
+import { editorStateAtom, templateContentAtom } from "../atoms/editor";
 
 const ModalOverlay = styled.div`
   position: fixed;
@@ -94,14 +97,16 @@ const Button = styled.button<{ variant?: "primary" | "secondary" }>`
   }
 `;
 
+const ErrorMessage = styled.div`
+  color: #e03131;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+`;
+
 interface SaveTemplateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: {
-    name: string;
-    description: string;
-    category: string;
-  }) => void;
+  onSave?: () => void;
 }
 
 const SaveTemplateModal: React.FC<SaveTemplateModalProps> = ({
@@ -109,16 +114,36 @@ const SaveTemplateModal: React.FC<SaveTemplateModalProps> = ({
   onClose,
   onSave,
 }) => {
+  const [editorState] = useAtom(editorStateAtom);
+  const [templateContent] = useAtom(templateContentAtom);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    onSave({
-      name: formData.get("name") as string,
-      description: formData.get("description") as string,
-      category: formData.get("category") as string,
-    });
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      await emailTemplatesApi.create({
+        name: formData.get("name") as string,
+        description: formData.get("description") as string,
+        category: formData.get("category") as string,
+        content: templateContent.html,
+        subject: formData.get("subject") as string,
+      });
+
+      onSave?.();
+      onClose();
+    } catch (err) {
+      setError("템플릿 저장 중 오류가 발생했습니다. 다시 시도해 주세요.");
+      console.error("Failed to save template:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -133,6 +158,15 @@ const SaveTemplateModal: React.FC<SaveTemplateModalProps> = ({
               name="name"
               required
               placeholder="템플릿 이름을 입력하세요"
+            />
+          </FormGroup>
+          <FormGroup>
+            <Label htmlFor="subject">이메일 제목</Label>
+            <Input
+              id="subject"
+              name="subject"
+              required
+              placeholder="이메일 제목을 입력하세요"
             />
           </FormGroup>
           <FormGroup>
@@ -152,12 +186,13 @@ const SaveTemplateModal: React.FC<SaveTemplateModalProps> = ({
               placeholder="템플릿에 대한 설명을 입력하세요"
             />
           </FormGroup>
+          {error && <ErrorMessage>{error}</ErrorMessage>}
           <ButtonGroup>
-            <Button type="button" onClick={onClose}>
+            <Button type="button" onClick={onClose} disabled={isLoading}>
               취소
             </Button>
-            <Button type="submit" variant="primary">
-              저장
+            <Button type="submit" variant="primary" disabled={isLoading}>
+              {isLoading ? "저장 중..." : "저장"}
             </Button>
           </ButtonGroup>
         </Form>

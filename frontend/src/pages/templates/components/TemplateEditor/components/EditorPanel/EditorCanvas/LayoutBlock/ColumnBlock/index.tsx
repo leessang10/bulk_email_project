@@ -3,7 +3,10 @@ import React from "react";
 import { useDrop } from "react-dnd";
 import styled from "styled-components";
 import { editorStateAtom } from "../../../../../atoms/editor";
-import { selectBlockAtom } from "../../../../../atoms/selection";
+import {
+  selectBlockAtom,
+  selectedComponentBlockIdAtom,
+} from "../../../../../atoms/selection";
 import type { ComponentBlock, EditorState } from "../../../../../types";
 import AddComponentButton from "../../AddComponentButton";
 import ContentBlock from "./ContentBlock";
@@ -12,7 +15,6 @@ interface ColumnBlockProps {
   layoutId: string;
   columnId: string;
   componentBlock: ComponentBlock | null;
-  selectedBlockId: string | null;
 }
 
 const Container = styled.div<{ $isOver: boolean }>`
@@ -29,9 +31,9 @@ const ColumnBlock: React.FC<ColumnBlockProps> = ({
   layoutId,
   columnId,
   componentBlock,
-  selectedBlockId,
 }) => {
   const [, setEditorState] = useAtom(editorStateAtom);
+  const [selectedBlockId] = useAtom(selectedComponentBlockIdAtom);
   const [, selectBlock] = useAtom(selectBlockAtom);
 
   const [{ isOver }, drop] = useDrop({
@@ -43,10 +45,7 @@ const ColumnBlock: React.FC<ColumnBlockProps> = ({
       sourceColumnId: string;
       componentBlock: ComponentBlock;
     }) => {
-      if (
-        item.sourceLayoutId === layoutId &&
-        item.sourceColumnId === columnId
-      ) {
+      if (item.sourceColumnId === columnId) {
         return;
       }
 
@@ -55,32 +54,31 @@ const ColumnBlock: React.FC<ColumnBlockProps> = ({
           prev.layouts[item.sourceLayoutId].columnBlocks[item.sourceColumnId];
         const targetColumnBlock = prev.layouts[layoutId].columnBlocks[columnId];
 
-        return {
-          ...prev,
-          layouts: {
-            ...prev.layouts,
-            [item.sourceLayoutId]: {
-              ...prev.layouts[item.sourceLayoutId],
-              columnBlocks: {
-                ...prev.layouts[item.sourceLayoutId].columnBlocks,
-                [item.sourceColumnId]: {
-                  ...sourceColumnBlock,
-                  componentBlock: null,
-                },
-              },
-            },
-            [layoutId]: {
-              ...prev.layouts[layoutId],
-              columnBlocks: {
-                ...prev.layouts[layoutId].columnBlocks,
-                [columnId]: {
-                  ...targetColumnBlock,
-                  componentBlock: item.componentBlock,
-                },
-              },
+        const newState = { ...prev };
+
+        newState.layouts[item.sourceLayoutId] = {
+          ...prev.layouts[item.sourceLayoutId],
+          columnBlocks: {
+            ...prev.layouts[item.sourceLayoutId].columnBlocks,
+            [item.sourceColumnId]: {
+              ...sourceColumnBlock,
+              componentBlock: null,
             },
           },
         };
+
+        newState.layouts[layoutId] = {
+          ...prev.layouts[layoutId],
+          columnBlocks: {
+            ...prev.layouts[layoutId].columnBlocks,
+            [columnId]: {
+              ...targetColumnBlock,
+              componentBlock: item.componentBlock,
+            },
+          },
+        };
+
+        return newState;
       });
     },
     collect: (monitor) => ({

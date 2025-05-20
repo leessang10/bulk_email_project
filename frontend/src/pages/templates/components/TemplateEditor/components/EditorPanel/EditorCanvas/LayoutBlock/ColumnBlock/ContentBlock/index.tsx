@@ -1,7 +1,8 @@
 import { useAtom } from "jotai";
+import { useEffect, useRef } from "react";
 import { useDrag } from "react-dnd";
 import styled from "styled-components";
-import { updateComponentBlockAtom } from "../../../../../../atoms/componentBlock";
+import { updateTextContentAtom } from "../../../../../../atoms/componentBlock";
 import type {
   ButtonBlock,
   ComponentBlock,
@@ -106,54 +107,6 @@ const ImageContent = styled.img<{ width?: string }>`
   display: block;
 `;
 
-const renderBlock = (
-  block: ComponentBlock,
-  onContentChange: (content: string) => void
-) => {
-  switch (block.type) {
-    case "text": {
-      return (
-        <TextContent
-          style={block.style}
-          contentEditable
-          suppressContentEditableWarning
-          onInput={(e) => {
-            const content = e.currentTarget.textContent || "";
-            onContentChange(content);
-          }}
-        >
-          {block.content}
-        </TextContent>
-      );
-    }
-    case "button": {
-      return (
-        <ContentWrapper align={block.style?.align}>
-          <ButtonContent style={block.style}>
-            {block.label || "버튼"}
-          </ButtonContent>
-        </ContentWrapper>
-      );
-    }
-    case "image": {
-      return (
-        <ContentWrapper align={block.align}>
-          <ImageContent
-            src={block.src}
-            alt={block.alt || ""}
-            width={block.width}
-            onError={(e) => {
-              e.currentTarget.src = "";
-            }}
-          />
-        </ContentWrapper>
-      );
-    }
-    default:
-      return null;
-  }
-};
-
 interface ContentBlockProps {
   block: ComponentBlock;
   isSelected: boolean;
@@ -162,6 +115,37 @@ interface ContentBlockProps {
   columnId: string;
 }
 
+const TextBlock = ({
+  block,
+  updateTextContent,
+}: {
+  block: TextBlock;
+  updateTextContent: (params: { blockId: string; content: string }) => void;
+}) => {
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.textContent = block.content;
+    }
+  }, []);
+
+  return (
+    <TextContent
+      ref={contentRef}
+      style={block.style}
+      contentEditable
+      suppressContentEditableWarning
+      onBlur={(e) => {
+        const content = e.currentTarget.textContent || "";
+        if (content !== block.content) {
+          updateTextContent({ blockId: block.id, content });
+        }
+      }}
+    />
+  );
+};
+
 const ContentBlock: React.FC<ContentBlockProps> = ({
   block,
   isSelected,
@@ -169,17 +153,7 @@ const ContentBlock: React.FC<ContentBlockProps> = ({
   layoutId,
   columnId,
 }) => {
-  const [, updateBlockContent] = useAtom(updateComponentBlockAtom);
-
-  const handleContentChange = (content: string) => {
-    if (block.type === "text") {
-      updateBlockContent({
-        blockId: block.id,
-        updates: { content },
-      });
-    }
-  };
-
+  const [, updateTextContent] = useAtom(updateTextContentAtom);
   const [{ isDragging }, drag] = useDrag({
     type: "component-block",
     item: {
@@ -194,6 +168,41 @@ const ContentBlock: React.FC<ContentBlockProps> = ({
     }),
   });
 
+  const renderBlock = (block: ComponentBlock) => {
+    switch (block.type) {
+      case "text": {
+        return (
+          <TextBlock block={block} updateTextContent={updateTextContent} />
+        );
+      }
+      case "button": {
+        return (
+          <ContentWrapper align={block.style?.align}>
+            <ButtonContent style={block.style}>
+              {block.label || "버튼"}
+            </ButtonContent>
+          </ContentWrapper>
+        );
+      }
+      case "image": {
+        return (
+          <ContentWrapper align={block.align}>
+            <ImageContent
+              src={block.src}
+              alt={block.alt || ""}
+              width={block.width}
+              onError={(e) => {
+                e.currentTarget.src = "";
+              }}
+            />
+          </ContentWrapper>
+        );
+      }
+      default:
+        return null;
+    }
+  };
+
   return (
     <BlockContainer
       ref={drag}
@@ -204,7 +213,7 @@ const ContentBlock: React.FC<ContentBlockProps> = ({
         onSelect(block.id);
       }}
     >
-      {renderBlock(block, handleContentChange)}
+      {renderBlock(block)}
     </BlockContainer>
   );
 };
