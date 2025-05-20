@@ -21,9 +21,9 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { PaginationDto } from '../../common/dto/pagination.dto';
 import { EmailAddressGroup } from '../../database/entities/bulk-email/email-group.entity';
 import { CreateEmailGroupDto } from './dto/create-email-group.dto';
+import { FindEmailGroupsDto } from './dto/find-email-groups.dto';
 import { UpdateEmailGroupDto } from './dto/update-email-group.dto';
 import { EmailAddressGroupsService } from './email-address-groups.service';
 
@@ -78,8 +78,8 @@ export class EmailAddressGroupsController {
       },
     },
   })
-  async findAll(@Query() paginationDto: PaginationDto) {
-    return this.emailAddressGroupsService.findAll(paginationDto);
+  async findAll(@Query() findEmailGroupsDto: FindEmailGroupsDto) {
+    return this.emailAddressGroupsService.findAll(findEmailGroupsDto);
   }
 
   @Get(':id')

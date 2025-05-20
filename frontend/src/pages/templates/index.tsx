@@ -1,3 +1,4 @@
+import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import TableV2 from "../../common/components/TableV2";
@@ -5,34 +6,10 @@ import type {
   ColumnDef,
   TableParams,
 } from "../../common/components/TableV2/types";
+import { emailTemplatesApi } from "./api/templates";
+import type { EmailTemplate } from "./api/types";
 
-interface TemplateItem {
-  id: string;
-  name: string;
-  description: string;
-  updatedAt: string;
-  thumbnail?: string;
-}
-
-// 임시 데이터
-const MOCK_TEMPLATES: TemplateItem[] = [
-  {
-    id: "1",
-    name: "기본 뉴스레터",
-    description: "기본적인 뉴스레터 템플릿입니다.",
-    updatedAt: "2024-03-15",
-    thumbnail: "https://via.placeholder.com/300x200",
-  },
-  {
-    id: "2",
-    name: "프로모션 안내",
-    description: "상품 프로모션 안내용 템플릿입니다.",
-    updatedAt: "2024-03-14",
-    thumbnail: "https://via.placeholder.com/300x200",
-  },
-];
-
-const columns: ColumnDef<TemplateItem>[] = [
+const columns: ColumnDef<EmailTemplate>[] = [
   {
     key: "name",
     label: "템플릿명",
@@ -43,32 +20,56 @@ const columns: ColumnDef<TemplateItem>[] = [
     label: "설명",
   },
   {
+    key: "category",
+    label: "카테고리",
+    sortable: true,
+  },
+  {
     key: "updatedAt",
     label: "마지막 수정일",
     sortable: true,
+    render: (value) => {
+      if (typeof value === "string") {
+        return new Date(value).toLocaleDateString();
+      }
+      return "";
+    },
   },
 ];
 
 const sortOptions = [
   { value: "name", label: "템플릿명" },
+  { value: "category", label: "카테고리" },
   { value: "updatedAt", label: "마지막 수정일" },
 ];
 
 const TemplatesPage = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const [total, setTotal] = useState(0);
 
-  const handleDataRequest = (params: TableParams) => {
-    // TODO: API 연동 시 실제 데이터 요청 구현
-    console.log("Data request params:", params);
-  };
+  const handleDataRequest = useCallback(async (params: TableParams) => {
+    try {
+      setIsLoading(true);
+      const response = await emailTemplatesApi.getList(params);
+      setTemplates(response.items);
+      setTotal(response.total);
+    } catch (error) {
+      console.error("Failed to fetch templates:", error);
+      // TODO: 에러 처리
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   return (
     <Container>
       <TableV2
         tableId="templates"
         columns={columns}
-        data={MOCK_TEMPLATES}
-        totalItems={MOCK_TEMPLATES.length}
+        data={templates}
+        totalItems={total}
         sortOptions={sortOptions}
         onDataRequest={handleDataRequest}
         onRowClick={(row) => navigate(`/templates/${row.id}`)}
@@ -79,6 +80,7 @@ const TemplatesPage = () => {
             variant: "primary",
           },
         ]}
+        isLoading={isLoading}
       />
     </Container>
   );

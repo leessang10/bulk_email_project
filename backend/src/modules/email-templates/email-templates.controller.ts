@@ -34,13 +34,26 @@ export class EmailTemplatesController {
 
   @Get()
   @ApiOperation({ summary: '이메일 템플릿 목록 조회' })
-  @ApiResponse({ status: 200, type: [EmailTemplate] })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    schema: {
+      type: 'object',
+      properties: {
+        items: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/EmailTemplate' },
+        },
+        total: { type: 'number' },
+        page: { type: 'number' },
+        pageSize: { type: 'number' },
+      },
+    },
+  })
   async findAll(@Query() findTemplatesDto: FindTemplatesDto): Promise<{
     items: EmailTemplate[];
     total: number;
     page: number;
     pageSize: number;
-    totalPages: number;
   }> {
     const [items, total] =
       await this.emailTemplatesService.findAll(findTemplatesDto);
@@ -51,7 +64,6 @@ export class EmailTemplatesController {
       total,
       page,
       pageSize,
-      totalPages: Math.ceil(total / pageSize),
     };
   }
 
