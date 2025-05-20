@@ -44,7 +44,7 @@ export interface SelectBlockParams {
 
 export const selectBlockAtom = atom(
   null,
-  (get, set, { blockId, layoutId, columnId }: SelectBlockParams) => {
+  (_get, set, { blockId, layoutId, columnId }: SelectBlockParams) => {
     set(selectedLayoutIdAtom, layoutId);
     set(selectedColumnBlockIdAtom, columnId);
     set(selectedComponentBlockIdAtom, blockId);
@@ -52,7 +52,7 @@ export const selectBlockAtom = atom(
 );
 
 // 선택 해제를 위한 atom
-export const clearSelectionAtom = atom(null, (get, set) => {
+export const clearSelectionAtom = atom(null, (_get, set) => {
   set(selectedLayoutIdAtom, null);
   set(selectedColumnBlockIdAtom, null);
   set(selectedComponentBlockIdAtom, null);

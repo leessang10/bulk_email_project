@@ -121,7 +121,11 @@ export class EmailAddressGroupsService {
     return emailGroup;
   }
 
-  async update(id: number, updateEmailGroupDto: UpdateEmailGroupDto) {
+  async update(
+    id: number,
+    updateEmailGroupDto: UpdateEmailGroupDto,
+    file?: Express.Multer.File,
+  ) {
     const emailGroup = await this.findOne(id);
 
     // mailMergeData가 문자열로 전달된 경우 파싱
@@ -143,7 +147,13 @@ export class EmailAddressGroupsService {
         updateEmailGroupDto.mailMergeData || emailGroup.mailMergeData,
     });
 
-    return this.emailGroupRepository.save(emailGroup);
+    const savedGroup = await this.emailGroupRepository.save(emailGroup);
+
+    if (file) {
+      await this.processEmailFile(savedGroup.id, file);
+    }
+
+    return savedGroup;
   }
 
   async addEmails(id: number, file: Express.Multer.File) {

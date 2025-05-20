@@ -97,16 +97,33 @@ export class EmailAddressGroupsController {
   @Put(':id')
   @ApiOperation({ summary: '이메일 그룹 수정' })
   @ApiParam({ name: 'id', description: '이메일 그룹 ID' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: '이메일 그룹 이름' },
+        region: { type: 'string', description: '지역' },
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: '이메일 주소 목록 엑셀 파일',
+        },
+      },
+    },
+  })
   @ApiResponse({ status: HttpStatus.OK, type: EmailAddressGroup })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: '이메일 그룹을 찾을 수 없음',
   })
+  @UseInterceptors(FileInterceptor('file'))
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateEmailGroupDto: UpdateEmailGroupDto,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
-    return this.emailAddressGroupsService.update(id, updateEmailGroupDto);
+    return this.emailAddressGroupsService.update(id, updateEmailGroupDto, file);
   }
 
   @Post(':id/emails')

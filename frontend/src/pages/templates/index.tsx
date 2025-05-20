@@ -1,23 +1,15 @@
-import { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import styled from "styled-components";
-import TableV2 from "../../common/components/TableV2";
-import type {
-  ColumnDef,
-  TableParams,
-} from "../../common/components/TableV2/types";
-import { emailTemplatesApi } from "./api/templates";
+import { useMemo } from "react";
+import PageLayout from "../../common/components/PageLayout";
+import TableV2, { createTableAtom } from "../../common/components/TableV2";
+import type { ColumnDef } from "../../common/components/TableV2/types";
 import type { EmailTemplate } from "./api/types";
+import { useEmailTemplates } from "./hooks/useEmailTemplates";
 
 const columns: ColumnDef<EmailTemplate>[] = [
   {
     key: "name",
     label: "템플릿명",
     sortable: true,
-  },
-  {
-    key: "description",
-    label: "설명",
   },
   {
     key: "category",
@@ -44,50 +36,25 @@ const sortOptions = [
 ];
 
 const TemplatesPage = () => {
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
-  const [total, setTotal] = useState(0);
+  const atoms = useMemo(() => createTableAtom("templates"), []);
 
-  const handleDataRequest = useCallback(async (params: TableParams) => {
-    try {
-      setIsLoading(true);
-      const response = await emailTemplatesApi.getList(params);
-      setTemplates(response.items);
-      setTotal(response.total);
-    } catch (error) {
-      console.error("Failed to fetch templates:", error);
-      // TODO: 에러 처리
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const { data, totalItems, handleDataRequest } = useEmailTemplates(atoms);
 
   return (
-    <Container>
-      <TableV2
+    <PageLayout
+      title="수신거부 이메일 관리"
+      description="수신거부된 이메일 주소와 사유를 관리할 수 있습니다."
+    >
+      <TableV2<EmailTemplate>
         tableId="templates"
         columns={columns}
-        data={templates}
-        totalItems={total}
+        data={data}
+        totalItems={totalItems}
         sortOptions={sortOptions}
         onDataRequest={handleDataRequest}
-        onRowClick={(row) => navigate(`/templates/${row.id}`)}
-        actions={[
-          {
-            label: "새 템플릿",
-            onClick: () => navigate("/templates/new"),
-            variant: "primary",
-          },
-        ]}
-        isLoading={isLoading}
       />
-    </Container>
+    </PageLayout>
   );
 };
-
-const Container = styled.div`
-  padding: 2rem;
-`;
 
 export default TemplatesPage;

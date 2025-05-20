@@ -1,3 +1,5 @@
+import type { SortOrder } from "../../../common/services/apiTypes";
+
 export interface Unsubscribe {
   id: number;
   email: string;
@@ -18,5 +20,5 @@ export interface UnsubscribeListParams {
   page?: number;
   pageSize?: number;
   sortBy?: "email" | "createdAt";
-  sortOrder?: "ASC" | "DESC";
+  sortOrder?: SortOrder;
 }

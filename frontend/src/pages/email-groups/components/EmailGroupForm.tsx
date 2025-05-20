@@ -8,25 +8,6 @@ import type {
   EmailGroupStatus,
 } from "../api/types";
 
-interface FileUploadProps {
-  onFileChange: (file: File) => void;
-  accept?: string;
-  file?: File | null;
-  id?: string;
-}
-
-interface KeyValuePair {
-  key: string;
-  value: string;
-}
-
-interface KeyValueInputProps {
-  onChange: (pairs: KeyValuePair[]) => void;
-  maxPairs?: number;
-  value?: Record<string, any>;
-  disabled?: boolean;
-}
-
 interface EmailGroupFormProps {
   mode: "create" | "edit" | "view";
   initialData?: EmailGroup;

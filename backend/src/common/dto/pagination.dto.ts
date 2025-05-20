@@ -35,13 +35,13 @@ export class PaginationDto {
 
   @ApiPropertyOptional({
     description: '정렬 방향',
-    enum: ['asc', 'desc'],
-    default: 'desc',
+    enum: ['ASC', 'DESC'],
+    default: 'DESC',
   })
   @IsString()
-  @IsIn(['asc', 'desc'])
+  @IsIn(['ASC', 'DESC'])
   @IsOptional()
-  sortOrder: 'asc' | 'desc' = 'desc';
+  sortOrder: 'ASC' | 'DESC' = 'DESC';
 
   @ApiPropertyOptional({
     description: '검색어',
